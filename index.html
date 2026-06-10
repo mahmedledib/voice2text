@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>VocalMed</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#1e2530;--border:#30363d;
+  --accent:#3b82f6;--accent-glow:rgba(59,130,246,0.15);
+  --red:#ef4444;--red-glow:rgba(239,68,68,0.22);
+  --green:#22c55e;--yellow:#f59e0b;
+  --text:#e6edf3;--text-muted:#8b949e;--text-dim:#484f58;
+  --radius:12px;--radius-sm:8px;--mono:'JetBrains Mono',monospace;
+  --bar-h:80px;
+}
+body.light{
+  --bg:#f6f8fa;--surface:#ffffff;--surface2:#f0f2f5;--border:#d0d7de;
+  --accent:#2563eb;--accent-glow:rgba(37,99,235,0.12);
+  --red:#dc2626;--red-glow:rgba(220,38,38,0.15);
+  --green:#16a34a;--yellow:#d97706;
+  --text:#1f2328;--text-muted:#57606a;--text-dim:#afb8c1;
+}
+.btn-theme{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.btn-theme:hover{border-color:var(--accent);color:var(--accent)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+
+/* ── HEADER ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;
+  border-bottom:1px solid var(--border);background:var(--surface);
+  position:sticky;top:0;z-index:100}
+.logo{font-size:1rem;font-weight:700;letter-spacing:-.5px}.logo span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:12px}
+.header-status{font-size:0.7rem;color:var(--text-muted);font-family:var(--mono)}
+.btn-analysis{padding:5px 14px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);font-size:0.75rem;cursor:pointer;
+  font-family:inherit;transition:all .2s}
+.btn-analysis:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── MAIN CONTENT ── */
+.main{padding:20px 20px calc(var(--bar-h) + 32px);max-width:700px;margin:0 auto}
+
+/* ── SESSION META ── */
+.session-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.progress-label{font-size:0.82rem;color:var(--text-muted)}.progress-label strong{color:var(--text)}
+.meta-right{display:flex;align-items:center;gap:10px}
+.upload-status{display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--text-muted);font-family:var(--mono)}
+.upload-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim)}
+.upload-dot.uploading{background:var(--yellow);animation:blink .9s infinite}
+.upload-dot.ok{background:var(--green)}.upload-dot.error{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.btn-end{padding:4px 12px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);font-size:0.72rem;cursor:pointer;
+  font-family:inherit;transition:all .2s}
+.btn-end:hover{border-color:var(--red);color:var(--red)}
+
+/* ── PROGRESS BAR ── */
+.prog-track{height:3px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:16px}
+.prog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s ease}
+
+/* ── ENV PANEL ── */
+.env-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:12px}
+.env-group{margin-bottom:10px}.env-group:last-child{margin-bottom:0}
+.env-label{font-size:0.67rem;color:var(--text-muted);font-weight:500;margin-bottom:7px;
+  text-transform:uppercase;letter-spacing:.5px}
+.flag-options{display:flex;flex-wrap:wrap;gap:6px}
+.flag-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text-muted);font-size:0.78rem;cursor:pointer;
+  transition:all .2s;font-family:inherit}
+.flag-btn.selected{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+
+/* ── SENTENCE BOX ── */
+.sentence-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:32px 24px;margin-bottom:10px;text-align:center;min-height:120px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.sentence-cat{font-size:0.63rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);font-weight:600}
+.sentence-txt{font-size:clamp(1rem,3.2vw,1.45rem);font-weight:500;line-height:1.55;color:var(--text)}
+.sentence-orders{font-size:0.68rem;color:var(--text-dim);font-family:var(--mono)}
+
+/* ══════════════════════════════════════════
+   WHATSAPP BAR
+══════════════════════════════════════════ */
+.wa-bar{
+  position:fixed;bottom:0;left:0;right:0;height:var(--bar-h);
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:12px;z-index:200;
+}
+.wa-bar.idle{justify-content:center}
+.wa-bar.active{justify-content:space-between}
+
+/* Trash */
+.wa-trash{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--border);
+  background:transparent;color:var(--text-muted);cursor:pointer;
+  display:none;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.wa-trash:hover{border-color:var(--red);color:var(--red)}
+.wa-trash.show{display:flex}
+
+/* Middle */
+.wa-middle{flex:1;display:flex;align-items:center;gap:10px;overflow:hidden;min-width:0;display:none}
+.wa-middle.show{display:flex}
+.wa-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+.wa-dot.blink{animation:blink .9s infinite}
+.wa-timer{font-family:var(--mono);font-size:0.95rem;color:var(--text);white-space:nowrap;min-width:36px}
+.wa-wave{flex:1;display:flex;align-items:center;gap:1.5px;height:30px;overflow:hidden}
+.wa-wave-bar{width:2.5px;border-radius:99px;background:var(--accent);flex-shrink:0;transition:height .08s}
+.wa-wave-bar.off{background:var(--border);height:2px!important}
+
+/* Play */
+.wa-play{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--accent);
+  background:transparent;color:var(--accent);cursor:pointer;
+  display:none;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.wa-play.show{display:flex}
+.wa-play.playing{background:var(--accent);color:#fff}
+
+/* Pause/resume */
+.wa-pr{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--border);
+  background:transparent;color:var(--text-muted);cursor:pointer;
+  display:none;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.wa-pr.show{display:flex}
+
+/* Main button */
+.wa-main{width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.wa-main.mic{background:var(--surface2);border:2px solid var(--border);color:var(--text-muted)}
+.wa-main.mic:hover{border-color:var(--red);color:var(--red)}
+.wa-main.mic.rec{background:var(--red);border-color:var(--red);color:#fff;animation:rpulse 1.5s infinite}
+.wa-main.send{background:var(--green);color:#fff}
+.wa-main.send:hover{background:#16a34a}
+@keyframes rpulse{0%,100%{box-shadow:0 0 0 0 var(--red-glow)}50%{box-shadow:0 0 0 10px transparent}}
+
+/* Hint */
+.wa-hint{position:fixed;bottom:calc(var(--bar-h) + 4px);left:0;right:0;
+  text-align:center;font-size:0.7rem;color:var(--text-dim);pointer-events:none;z-index:199;padding:3px}
+
+
+
+/* Hidden audio */
+#audioPlayer{display:none}
+
+/* ── MODALS ── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;
+  justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px 28px;width:300px;text-align:center}
+.modal-box h3{font-size:.95rem;margin-bottom:8px}
+.modal-box p{font-size:.78rem;color:var(--text-muted);margin-bottom:18px}
+.modal-row{display:flex;gap:8px;justify-content:center}
+.btn-cancel{padding:8px 20px;border-radius:20px;font-size:.82rem;font-weight:600;
+  cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:inherit}
+.btn-confirm{padding:8px 20px;border-radius:20px;font-size:.82rem;font-weight:600;
+  cursor:pointer;border:1px solid var(--red);background:transparent;color:var(--red);font-family:inherit}
+
+/* ── ANALYSIS ── */
+.analysis-wrap{padding:20px;max-width:700px;margin:0 auto;display:none}
+.analysis-wrap.show{display:block}
+.an-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.an-header h2{font-size:1rem;font-weight:600}
+.btn-export{padding:7px 16px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);font-size:0.8rem;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-export:hover{border-color:var(--accent);color:var(--accent)}
+.btn-back{padding:5px 14px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);font-size:0.75rem;cursor:pointer;
+  font-family:inherit;transition:all .2s;margin-right:8px}
+.btn-back:hover{border-color:var(--accent);color:var(--accent)}
+.session-list{display:flex;flex-direction:column;gap:8px}
+.session-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 16px;cursor:pointer;transition:border-color .2s}
+.session-row:hover{border-color:var(--accent)}
+.session-row-id{font-family:var(--mono);font-size:0.75rem;color:var(--accent)}
+.session-row-meta{font-size:0.7rem;color:var(--text-muted);margin-top:2px}
+.clips-table{width:100%;border-collapse:collapse;font-size:0.78rem;margin-top:16px}
+.clips-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);
+  color:var(--text-muted);font-size:0.65rem;text-transform:uppercase;letter-spacing:.5px}
+.clips-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.clips-table tr:hover td{background:var(--surface2)}
+.empty{text-align:center;padding:50px 20px;color:var(--text-muted);font-size:.85rem}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(var(--bar-h)+10px);left:50%;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:9px 16px;font-size:0.78rem;z-index:400;opacity:0;transition:all .25s;
+  pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--green);color:var(--green)}
+.toast.err{border-color:var(--red);color:var(--red)}
+.toast.info{border-color:var(--accent);color:var(--accent)}
+
+@media(min-width:701px){
+  .wa-bar{max-width:700px;left:50%;right:auto;transform:translateX(-50%);
+    border-radius:var(--radius) var(--radius) 0 0;
+    border-left:1px solid var(--border);border-right:1px solid var(--border)}
+  .wa-hint{max-width:700px;left:50%;right:auto;transform:translateX(-50%)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Vocal<span>Med</span></div>
+  <div class="header-right">
+    <div class="header-status" id="headerStatus">—</div>
+    <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="Changer le thème">
+      <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+    <button class="btn-analysis" onclick="showAnalysis()">Analyse</button>
+  </div>
+</header>
+
+<!-- ── RECORDING ── -->
+<div class="main" id="mainView">
+  <div class="session-meta">
+    <div class="progress-label">Phrase <strong id="sentenceIndex">1</strong></div>
+    <div class="meta-right">
+      <div class="upload-status">
+        <div class="upload-dot" id="uploadDot"></div>
+        <span id="uploadLabel">—</span>
+      </div>
+      <button class="btn-end" onclick="askEnd()">Terminer</button>
+    </div>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+
+  <!-- Env flags -->
+  <div class="env-panel">
+    <div class="env-group">
+      <div class="env-label">📍 Lieu <span style="font-size:.6rem;opacity:.6">(un seul)</span></div>
+      <div class="flag-options" id="flagLieu">
+        <button class="flag-btn" data-group="lieu" data-val="Bureau privé">Bureau privé</button>
+        <button class="flag-btn" data-group="lieu" data-val="Bureau partagé">Bureau partagé</button>
+        <button class="flag-btn" data-group="lieu" data-val="Couloir">Couloir</button>
+        <button class="flag-btn" data-group="lieu" data-val="Chambre patient">Chambre patient</button>
+        <button class="flag-btn" data-group="lieu" data-val="Salle de soins">Salle de soins</button>
+      </div>
+    </div>
+    <div class="env-group">
+      <div class="env-label">📏 Distance <span style="font-size:.6rem;opacity:.6">(un seul)</span></div>
+      <div class="flag-options" id="flagDist">
+        <button class="flag-btn" data-group="distance" data-val="Distance normale">Distance normale</button>
+        <button class="flag-btn" data-group="distance" data-val="Trop proche">Trop proche</button>
+      </div>
+    </div>
+    <div class="env-group">
+      <div class="env-label">🎙️ Conditions <span style="font-size:.6rem;opacity:.6">(multiple)</span></div>
+      <div class="flag-options" id="flagCond">
+        <button class="flag-btn multi" data-val="Bruit de fond">Bruit de fond</button>
+        <button class="flag-btn multi" data-val="Port du masque">Masque</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sentence -->
+  <div class="sentence-box">
+    <div class="sentence-cat" id="sentenceCat"></div>
+    <div class="sentence-txt" id="sentenceTxt">Chargement…</div>
+    <div class="sentence-orders" id="sentenceOrders"></div>
+  </div>
+</div>
+
+<!-- ── ANALYSIS ── -->
+<div class="analysis-wrap" id="analysisView">
+  <div class="an-header">
+    <div>
+      <button class="btn-back" onclick="showRecording()">← Retour</button>
+      <strong style="font-size:1rem">Analyse</strong>
+    </div>
+    <button class="btn-export" onclick="exportJSON()">⬇ Exporter JSON</button>
+  </div>
+  <div id="sessionList" class="session-list"></div>
+  <div id="analysisEmpty" class="empty">Aucune session enregistrée.</div>
+</div>
+
+<!-- WA hint -->
+<div class="wa-hint" id="waHint">Appuyez sur le micro pour commencer</div>
+
+<!-- WA Bar -->
+<div class="wa-bar idle" id="waBar">
+  <button class="wa-trash" id="waTrash" onclick="discardClip()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+      <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+    </svg>
+  </button>
+
+  <div class="wa-middle" id="waMiddle">
+    <div class="wa-dot" id="waDot"></div>
+    <div class="wa-timer" id="waTimer">0:00</div>
+    <div class="wa-wave" id="waWave"></div>
+  </div>
+
+  <button class="wa-play" id="waPlay" onclick="togglePlay()">
+    <svg id="waPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="5,3 19,12 5,21"/>
+    </svg>
+  </button>
+
+  <button class="wa-pr" id="waPR" onclick="togglePause()">
+    <svg id="waPRIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
+    </svg>
+  </button>
+
+  <button class="wa-main mic" id="waMain" onclick="handleMain()">
+    <svg id="waMainIcon" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3"/>
+      <path d="M5 10a7 7 0 0 0 14 0"/>
+      <line x1="12" y1="19" x2="12" y2="22"/>
+      <line x1="9" y1="22" x2="15" y2="22"/>
+    </svg>
+  </button>
+</div>
+
+<audio id="audioPlayer" onended="onAudioEnded()"></audio>
+
+<!-- Discard modal -->
+<div class="modal" id="discardModal">
+  <div class="modal-box">
+    <h3>Supprimer cet enregistrement ?</h3>
+    <p>L'enregistrement sera supprimé. La phrase sera remplacée.</p>
+    <div class="modal-row">
+      <button class="btn-cancel" onclick="closeModal('discardModal')">Annuler</button>
+      <button class="btn-confirm" onclick="confirmDiscard()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- End session modal -->
+<div class="modal" id="endModal">
+  <div class="modal-box">
+    <h3>Terminer la session ?</h3>
+    <p><span id="endCount">0</span> clips enregistrés seront conservés.</p>
+    <div class="modal-row">
+      <button class="btn-cancel" onclick="closeModal('endModal')">Continuer</button>
+      <button class="btn-confirm" onclick="closeModal('endModal');endSession()">Terminer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════
+// CONFIG
+// ═══════════════════════════════
+const CONFIG = {
+  GITHUB_TOKEN:        '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',
+  GITHUB_REPO:         'AdvancedBizConsulting/voice2json',
+  GITHUB_BRANCH:       'main',
+  GITHUB_RESULTS_PATH: 'results/',
+  GITHUB_AUDIOS_PATH:  'audios/',
+  SENTENCES_URL:       'sentences.json',
+  SESSION_SIZE:        30,
+};
+
+// ═══════════════════════════════
+// STATE
+// ═══════════════════════════════
+const S = {
+  userId: null, sessionId: null,
+  deviceProfile: {},
+  flags: { lieu: null, distance: null, conditions: [] },
+  sentences: [], sessionSentences: [], currentIndex: 0,
+  clips: [],        // completed clips in this session
+  recorder: null, audioChunks: [],
+  state: 'idle',    // idle | recording | paused | stopped
+  recStart: null, pausedMs: 0, timerInterval: null,
+  audioCtx: null, wavAnim: null, micStream: null,
+  pendingBlob: null, pendingExt: 'webm', objectURL: null,
+  isPlaying: false,
+  sessions: [],     // all sessions from localStorage
+};
+
+// ═══════════════════════════════
+// INIT
+// ═══════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
+  initUser();
+  detectDevice();
+  await loadSentences();
+  buildWave();
+  loadFlagListeners();
+  loadSessions();
+  restoreOrInit();
+});
+
+// ═══════════════════════════════
+// USER / COOKIE
+// ═══════════════════════════════
+function initUser() {
+  let id = ls('vocalmed_uid');
+  if (!id) { id = 'u_' + rand() + Date.now().toString(36); ls('vocalmed_uid', id); }
+  S.userId = id;
+  document.getElementById('headerStatus').textContent = id.slice(0, 12);
+}
+function rand() { return Math.random().toString(36).slice(2, 9); }
+function ls(k, v) {
+  if (v === undefined) return localStorage.getItem(k);
+  localStorage.setItem(k, v);
+}
+
+// ═══════════════════════════════
+// DEVICE
+// ═══════════════════════════════
+function detectDevice() {
+  const ua = navigator.userAgent;
+  S.deviceProfile = {
+    cores:   navigator.hardwareConcurrency || '?',
+    ram:     navigator.deviceMemory || '?',
+    os:      /Windows/.test(ua)?'Windows':/Android/.test(ua)?'Android':/iPhone|iPad/.test(ua)?'iOS':/Mac/.test(ua)?'macOS':'Other',
+    browser: /Edg/.test(ua)?'Edge':/Chrome/.test(ua)?'Chrome':/Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Other',
+    mobile:  /Mobi|Android/i.test(ua),
+  };
+}
+
+// ═══════════════════════════════
+// SENTENCES
+// ═══════════════════════════════
+async function loadSentences() {
+  try {
+    const r = await fetch(CONFIG.SENTENCES_URL);
+    S.sentences = await r.json();
+  } catch {
+    S.sentences = [
+      { sentence: "Prescrivez de l'amoxicilline 500mg trois fois par jour pendant 7 jours", num_orders: 1 },
+      { sentence: "Ordonnez une NFS et un bilan hépatique complet", num_orders: 2 },
+      { sentence: "Demandez une radiographie thoracique de face", num_orders: 1 },
+      { sentence: "Prescrivez du paracétamol 1g toutes les 8 heures si douleur", num_orders: 1 },
+      { sentence: "Commandez une échographie abdominale et un dosage de la lipase", num_orders: 2 },
+    ];
+    showToast('sentences.json introuvable — démo', 'info');
+  }
+}
+function pickSentences() {
+  S.sessionSentences = [...S.sentences].sort(() => Math.random() - .5).slice(0, CONFIG.SESSION_SIZE);
+}
+
+// ═══════════════════════════════
+// SESSION PERSISTENCE
+// ═══════════════════════════════
+function saveSession() {
+  if (!S.sessionId) return;
+  ls('vocalmed_active', JSON.stringify({
+    sessionId: S.sessionId,
+    userId: S.userId,
+    flags: S.flags,
+    sessionSentences: S.sessionSentences,
+    currentIndex: S.currentIndex,
+    clips: S.clips,
+  }));
+}
+function clearSession() { localStorage.removeItem('vocalmed_active'); }
+
+function restoreOrInit() {
+  const raw = ls('vocalmed_active');
+  if (raw) {
+    try {
+      const snap = JSON.parse(raw);
+      S.sessionId        = snap.sessionId;
+      S.flags            = snap.flags || { lieu: null, distance: null, conditions: [] };
+      S.sessionSentences = snap.sessionSentences;
+      S.currentIndex     = snap.currentIndex;
+      S.clips            = snap.clips || [];
+      restoreFlagUI();
+      showToast('Session reprise — phrase ' + (S.currentIndex + 1), 'info');
+      renderSentence();
+      return;
+    } catch {}
+  }
+  // Fresh session
+  S.sessionId = 'session_' + S.userId.slice(2, 8) + '_' + Date.now().toString(36);
+  pickSentences();
+  S.currentIndex = 0; S.clips = [];
+  saveSession();
+  renderSentence();
+}
+
+function restoreFlagUI() {
+  if (S.flags.lieu) {
+    document.querySelectorAll('.flag-btn[data-group="lieu"]').forEach(b =>
+      b.classList.toggle('selected', b.dataset.val === S.flags.lieu));
+  }
+  if (S.flags.distance) {
+    document.querySelectorAll('.flag-btn[data-group="distance"]').forEach(b =>
+      b.classList.toggle('selected', b.dataset.val === S.flags.distance));
+  }
+  (S.flags.conditions || []).forEach(val =>
+    document.querySelectorAll('.flag-btn.multi').forEach(b => {
+      if (b.dataset.val === val) b.classList.add('selected');
+    })
+  );
+}
+
+// ═══════════════════════════════
+// FLAGS
+// ═══════════════════════════════
+function loadFlagListeners() {
+  // Single-select groups: lieu, distance
+  ['lieu', 'distance'].forEach(group => {
+    document.querySelectorAll(`.flag-btn[data-group="${group}"]`).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const was = btn.classList.contains('selected');
+        document.querySelectorAll(`.flag-btn[data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
+        if (!was) { btn.classList.add('selected'); S.flags[group] = btn.dataset.val; }
+        else S.flags[group] = null;
+      });
+    });
+  });
+  // Multi-select: conditions
+  document.querySelectorAll('.flag-btn.multi').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+      S.flags.conditions = [...document.querySelectorAll('.flag-btn.multi.selected')].map(b => b.dataset.val);
+    });
+  });
+}
+
+// ═══════════════════════════════
+// SENTENCE RENDER
+// ═══════════════════════════════
+function renderSentence() {
+  if (S.currentIndex >= S.sessionSentences.length) { endSession(); return; }
+  const s = S.sessionSentences[S.currentIndex];
+  document.getElementById('sentenceIndex').textContent = S.currentIndex + 1;
+  document.getElementById('sentenceTxt').textContent   = s.sentence;
+  document.getElementById('sentenceOrders').textContent = s.num_orders + (s.num_orders > 1 ? ' ordres' : ' ordre');
+  document.getElementById('sentenceCat').textContent   = guessCategory(s.sentence);
+  document.getElementById('progFill').style.width      = Math.round((S.currentIndex / S.sessionSentences.length) * 100) + '%';
+}
+function guessCategory(t) {
+  t = t.toLowerCase();
+  if (/radio|scanner|irm|échographie|rx|thoracique/.test(t)) return 'Radiologie';
+  if (/nfs|bilan|dosage|analyse|glycémie|lipase|ionogramme/.test(t)) return 'Analyse';
+  return 'Prescription';
+}
+
+// ═══════════════════════════════
+// BAR STATE
+// ═══════════════════════════════
+function setBar(state) {
+  S.state = state;
+  const bar    = document.getElementById('waBar');
+  const trash  = document.getElementById('waTrash');
+  const mid    = document.getElementById('waMiddle');
+  const dot    = document.getElementById('waDot');
+  const play   = document.getElementById('waPlay');
+  const pr     = document.getElementById('waPR');
+  const prIcon = document.getElementById('waPRIcon');
+  const main   = document.getElementById('waMain');
+  const mIcon  = document.getElementById('waMainIcon');
+  const hint   = document.getElementById('waHint');
+  const note   = null;
+
+  // Reset classes
+  bar.className   = 'wa-bar ' + (state === 'idle' ? 'idle' : 'active');
+  trash.className = 'wa-trash' + (state === 'paused' || state === 'stopped' ? ' show' : '');
+  mid.className   = 'wa-middle' + (state !== 'idle' ? ' show' : '');
+  play.className  = 'wa-play'  + (state === 'paused' || state === 'stopped' ? ' show' : '');
+  pr.className    = 'wa-pr'   + (state === 'recording' || state === 'paused' ? ' show' : '');
+
+  // Dot blink
+  dot.className = 'wa-dot' + (state === 'recording' ? ' blink' : '');
+
+  // Pause/resume icon
+  if (state === 'recording') {
+    prIcon.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+  } else if (state === 'paused') {
+    prIcon.innerHTML = micPath();
+  }
+
+  // Main button
+  if (state === 'idle') {
+    main.className = 'wa-main mic';
+    mIcon.innerHTML = micPath();
+  } else if (state === 'recording') {
+    main.className = 'wa-main send';
+    mIcon.innerHTML = sendPath();
+  } else {
+    main.className = 'wa-main send';
+    mIcon.innerHTML = sendPath();
+  }
+
+  // Hint
+  hint.textContent = {
+    idle:      'Appuyez sur le micro pour commencer',
+    recording: 'En cours… ‖ pause · ➤ envoyer',
+    paused:    '',
+    stopped:   '',
+  }[state] || '';
+}
+
+function micPath() {
+  return `<rect x="9" y="2" width="6" height="12" rx="3"/>
+    <path d="M5 10a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" fill="none"/>
+    <line x1="12" y1="19" x2="12" y2="22" stroke="currentColor" stroke-width="2"/>
+    <line x1="9" y1="22" x2="15" y2="22" stroke="currentColor" stroke-width="2"/>`;
+}
+function sendPath() {
+  return `<path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>`;
+}
+
+// ═══════════════════════════════
+// MAIN BUTTON
+// ═══════════════════════════════
+function handleMain() {
+  if (S.state === 'idle')                        startRec();
+  else if (S.state === 'recording')              sendClip();
+  else if (S.state === 'paused')                 sendClip();
+  else if (S.state === 'stopped')                sendClip();
+}
+function togglePause() {
+  if (S.state === 'recording') pauseRec();
+  else if (S.state === 'paused') resumeRec();
+}
+
+// ═══════════════════════════════
+// RECORDING
+// ═══════════════════════════════
+function startRec() {
+  navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: false })
+    .then(stream => {
+      localStorage.setItem('vocalmed_mic_ok', '1');
+      S.micStream   = stream;
+      S.audioChunks = [];
+      const mime = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4','']
+        .find(t => !t || MediaRecorder.isTypeSupported(t));
+      try { S.recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {}); }
+      catch { S.recorder = new MediaRecorder(stream); }
+      S.recorder.ondataavailable = e => { if (e.data?.size > 0) S.audioChunks.push(e.data); };
+      S.recorder.start(100);
+      S.recStart = Date.now(); S.pausedMs = 0;
+      setBar('recording');
+      startWave(stream);
+      startTimer();
+    })
+    .catch(e => {
+      const msg = e.name === 'NotAllowedError'
+        ? 'Permission micro refusée — autorisez le microphone dans les réglages'
+        : e.name === 'NotFoundError' ? 'Aucun microphone détecté' : e.message;
+      showToast(msg, 'err');
+    });
+}
+
+function pauseRec() {
+  if (S.recorder?.state === 'recording') {
+    S.recorder.pause();
+    S.pausedMs += Date.now() - S.recStart;
+  }
+  clearInterval(S.timerInterval);
+  stopWave();
+  buildPauseBlob();
+  setBar('paused');
+}
+
+function resumeRec() {
+  stopPlay();
+  if (S.recorder?.state === 'paused') {
+    S.recorder.resume();
+    S.recStart = Date.now();
+  }
+  setBar('recording');
+  startTimer();
+  if (S.micStream) startWave(S.micStream);
+}
+
+function buildPauseBlob() {
+  if (!S.audioChunks.length) return;
+  const mime = S.recorder?.mimeType || 'audio/webm';
+  const ext  = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') ? 'mp4' : 'webm';
+  const blob = new Blob(S.audioChunks, { type: mime });
+  S.pendingBlob = blob; S.pendingExt = ext;
+  if (S.objectURL) URL.revokeObjectURL(S.objectURL);
+  S.objectURL = URL.createObjectURL(blob);
+  document.getElementById('audioPlayer').src = S.objectURL;
+}
+
+function stopAndGetBlob() {
+  return new Promise(res => {
+    if (!S.recorder || S.recorder.state === 'inactive') { buildPauseBlob(); res(S.pendingBlob); return; }
+    S.recorder.onstop = () => {
+      buildPauseBlob();
+      S.micStream?.getTracks().forEach(t => t.stop()); S.micStream = null;
+      clearInterval(S.timerInterval); stopWave();
+      res(S.pendingBlob);
+    };
+    S.recorder.stop();
+  });
+}
+
+// ═══════════════════════════════
+// SEND / DISCARD
+// ═══════════════════════════════
+async function sendClip() {
+  setBar('stopped');
+  const blob = await stopAndGetBlob();
+  if (!blob) { showToast('Aucun audio', 'err'); setBar('idle'); return; }
+
+  const s        = S.sessionSentences[S.currentIndex];
+  const clipId   = S.sessionId + '_' + String(S.currentIndex).padStart(3, '0');
+  const filename = clipId + '.' + S.pendingExt;
+  const note     = null;
+
+  const clip = {
+    clip_id:         clipId,
+    sentence:        s.sentence,
+    num_orders:      s.num_orders,
+    audio_clip_name: filename,
+    note:            note || null,
+    environment: {
+      lieu:       S.flags.lieu       || null,
+      distance:   S.flags.distance   || null,
+      conditions: [...S.flags.conditions],
+    },
+    device: {
+      os:      S.deviceProfile.os,
+      browser: S.deviceProfile.browser,
+      mobile:  S.deviceProfile.mobile,
+      cores:   S.deviceProfile.cores,
+      ram:     S.deviceProfile.ram,
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  S.clips.push(clip);
+  S.currentIndex++;
+  saveSession();
+
+  // Capture blob NOW before any cleanup clears it
+  const audioBlob = blob;
+
+  stopPlay();
+  if (S.objectURL) { URL.revokeObjectURL(S.objectURL); S.objectURL = null; }
+  document.getElementById('audioPlayer').src = '';
+  S.pendingBlob = null;
+
+  // Fire-and-forget uploads AFTER cleanup references are done
+  commitAudio(audioBlob, filename);
+  pushJSON();
+
+  renderSentence();
+  setBar('idle');
+}
+
+function discardClip() { document.getElementById('discardModal').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function confirmDiscard() {
+  closeModal('discardModal');
+  stopPlay();
+  if (S.recorder) { try { S.recorder.stop(); } catch {} }
+  S.micStream?.getTracks().forEach(t => t.stop()); S.micStream = null;
+  S.audioChunks = []; S.pendingBlob = null;
+  clearInterval(S.timerInterval); stopWave();
+  if (S.objectURL) { URL.revokeObjectURL(S.objectURL); S.objectURL = null; }
+  document.getElementById('audioPlayer').src = '';
+  // swap sentence
+  const used   = new Set(S.sessionSentences.map(x => x.sentence));
+  const extras = S.sentences.filter(s => !used.has(s.sentence));
+  if (extras.length) S.sessionSentences[S.currentIndex] = extras[Math.floor(Math.random() * extras.length)];
+  renderSentence();
+  setBar('idle');
+  showToast('Enregistrement supprimé', 'info');
+}
+
+// ═══════════════════════════════
+// END SESSION
+// ═══════════════════════════════
+function askEnd() {
+  document.getElementById('endCount').textContent = S.clips.length;
+  document.getElementById('endModal').classList.add('open');
+}
+function endSession() {
+  clearSession();
+  if (S.recorder) { try { S.recorder.stop(); } catch {} }
+  S.micStream?.getTracks().forEach(t => t.stop()); S.micStream = null;
+  clearInterval(S.timerInterval); stopWave(); stopPlay();
+  setBar('idle');
+
+  // Fresh session
+  S.sessionId = 'session_' + S.userId.slice(2, 8) + '_' + Date.now().toString(36);
+  pickSentences();
+  S.currentIndex = 0; S.clips = [];
+  saveSession();
+  renderSentence();
+  showToast('Nouvelle session démarrée', 'info');
+}
+
+// ═══════════════════════════════
+// PLAYBACK
+// ═══════════════════════════════
+function togglePlay() {
+  const p = document.getElementById('audioPlayer');
+  if (!p.src || p.src === location.href) { showToast('Aucun audio', 'info'); return; }
+  if (S.isPlaying) stopPlay();
+  else {
+    p.play().catch(() => {});
+    S.isPlaying = true;
+    document.getElementById('waPlay').classList.add('playing');
+    document.getElementById('waPlayIcon').innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+  }
+}
+function stopPlay() {
+  const p = document.getElementById('audioPlayer');
+  p.pause(); p.currentTime = 0;
+  S.isPlaying = false;
+  document.getElementById('waPlay').classList.remove('playing');
+  document.getElementById('waPlayIcon').innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+}
+function onAudioEnded() { stopPlay(); }
+
+// ═══════════════════════════════
+// TIMER
+// ═══════════════════════════════
+function startTimer() {
+  clearInterval(S.timerInterval);
+  S.recStart = Date.now();
+  S.timerInterval = setInterval(() => {
+    const ms = S.pausedMs + (Date.now() - S.recStart);
+    const s  = Math.floor(ms / 1000) % 60, m = Math.floor(ms / 60000);
+    document.getElementById('waTimer').textContent = m + ':' + String(s).padStart(2, '0');
+  }, 200);
+}
+
+// ═══════════════════════════════
+// WAVEFORM
+// ═══════════════════════════════
+function buildWave() {
+  const w = document.getElementById('waWave');
+  for (let i = 0; i < 40; i++) {
+    const b = document.createElement('div'); b.className = 'wa-wave-bar off'; b.style.height = '2px'; w.appendChild(b);
+  }
+}
+function startWave(stream) {
+  stopWave();
+  try {
+    S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const an = S.audioCtx.createAnalyser(); an.fftSize = 64;
+    S.audioCtx.createMediaStreamSource(stream).connect(an);
+    const bars = document.querySelectorAll('.wa-wave-bar');
+    function draw() {
+      if (S.state !== 'recording') return;
+      const d = new Uint8Array(an.frequencyBinCount); an.getByteFrequencyData(d);
+      bars.forEach((b, i) => { b.className = 'wa-wave-bar'; b.style.height = Math.max(2, (d[i % d.length] || 0) / 255 * 26) + 'px'; });
+      S.wavAnim = requestAnimationFrame(draw);
+    }
+    draw();
+  } catch (e) { console.warn(e); }
+}
+function stopWave() {
+  cancelAnimationFrame(S.wavAnim);
+  document.querySelectorAll('.wa-wave-bar').forEach(b => { b.className = 'wa-wave-bar off'; b.style.height = '2px'; });
+  if (S.audioCtx) { S.audioCtx.close(); S.audioCtx = null; }
+}
+
+// ═══════════════════════════════
+// GITHUB
+// ═══════════════════════════════
+async function githubPut(path, base64, message) {
+  // Validate config first
+  if (!CONFIG.GITHUB_TOKEN || CONFIG.GITHUB_TOKEN === 'YOUR_GITHUB_TOKEN_HERE')
+    throw new Error('Token manquant dans CONFIG');
+  if (!CONFIG.GITHUB_REPO || CONFIG.GITHUB_REPO === 'your-username/your-repo')
+    throw new Error('Repo manquant dans CONFIG');
+
+  let sha = null;
+  try {
+    const r = await fetch('https://api.github.com/repos/' + CONFIG.GITHUB_REPO + '/contents/' + path,
+      { headers: { 'Authorization': 'token ' + CONFIG.GITHUB_TOKEN } });
+    if (r.ok) { const d = await r.json(); sha = d.sha || null; }
+  } catch {}
+  const body = { message, content: base64, branch: CONFIG.GITHUB_BRANCH };
+  if (sha) body.sha = sha;
+  const r = await fetch('https://api.github.com/repos/' + CONFIG.GITHUB_REPO + '/contents/' + path, {
+    method: 'PUT',
+    headers: { 'Authorization': 'token ' + CONFIG.GITHUB_TOKEN, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) {
+    let detail = 'GitHub HTTP ' + r.status;
+    try { const d = await r.json(); detail += ' – ' + (d.message || JSON.stringify(d)); } catch {}
+    throw new Error(detail);
+  }
+}
+
+async function commitAudio(blob, filename) {
+  setUpload('uploading', '⬆ Audio…');
+  console.log('[commitAudio] start', filename, 'size:', blob?.size, 'type:', blob?.type);
+  try {
+    if (!blob || blob.size === 0) throw new Error('Blob vide (taille 0)');
+    const b64 = await blobToB64(blob);
+    console.log('[commitAudio] b64 length:', b64.length, 'path:', CONFIG.GITHUB_AUDIOS_PATH + filename);
+    await githubPut(CONFIG.GITHUB_AUDIOS_PATH + filename, b64, 'audio ' + filename);
+    setUpload('ok', '✓');
+    console.log('[commitAudio] success:', filename);
+  } catch (e) {
+    setUpload('error', '✗');
+    console.error('[commitAudio] FAILED:', e.message);
+    showToast('Audio non sauvegardé : ' + e.message, 'err');
+  }
+}
+
+async function pushJSON() {
+  const payload = {
+    session_id:     S.sessionId,
+    user_id:        S.userId,
+    device_profile: S.deviceProfile,
+    timestamp:      new Date().toISOString(),
+    clips:          S.clips,
+  };
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+  try {
+    await githubPut(CONFIG.GITHUB_RESULTS_PATH + S.sessionId + '.json', b64, 'update ' + S.sessionId);
+    saveLocally(payload);
+  } catch (e) { saveLocally(payload); console.error(e); }
+}
+
+function blobToB64(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob);
+  });
+}
+function setUpload(type, label) {
+  document.getElementById('uploadDot').className = 'upload-dot ' + type;
+  document.getElementById('uploadLabel').textContent = label;
+}
+
+// ═══════════════════════════════
+// LOCAL SESSIONS
+// ═══════════════════════════════
+function saveLocally(payload) {
+  const sessions = JSON.parse(ls('vocalmed_sessions') || '[]');
+  const idx = sessions.findIndex(s => s.session_id === payload.session_id);
+  if (idx >= 0) sessions[idx] = payload; else sessions.push(payload);
+  ls('vocalmed_sessions', JSON.stringify(sessions));
+  S.sessions = sessions;
+}
+function loadSessions() {
+  S.sessions = JSON.parse(ls('vocalmed_sessions') || '[]');
+}
+
+// ═══════════════════════════════
+// ANALYSIS VIEW
+// ═══════════════════════════════
+function showAnalysis() {
+  loadSessions();
+  document.getElementById('mainView').style.display    = 'none';
+  document.getElementById('analysisView').classList.add('show');
+  document.getElementById('waHint').style.display      = 'none';
+  document.getElementById('waBar').style.display       = 'none';
+  renderSessions();
+}
+function showRecording() {
+  document.getElementById('mainView').style.display    = 'block';
+  document.getElementById('analysisView').classList.remove('show');
+  document.getElementById('waHint').style.display      = 'block';
+  document.getElementById('waBar').style.display       = 'flex';
+}
+
+function renderSessions() {
+  const list  = document.getElementById('sessionList');
+  const empty = document.getElementById('analysisEmpty');
+  if (!S.sessions.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = S.sessions.map(s => `
+    <div class="session-row" onclick="openSession('${s.session_id}')">
+      <div class="session-row-id">${s.session_id}</div>
+      <div class="session-row-meta">
+        ${s.clips?.length || 0} clips · ${s.device_profile?.os || '?'} ·
+        ${new Date(s.timestamp).toLocaleDateString('fr-FR')}
+      </div>
+    </div>`).join('');
+}
+
+function openSession(id) {
+  const s = S.sessions.find(x => x.session_id === id); if (!s) return;
+  const list = document.getElementById('sessionList');
+  list.innerHTML = `
+    <button class="btn-back" onclick="renderSessions()" style="margin-bottom:12px">← Sessions</button>
+    <div style="font-family:var(--mono);font-size:.75rem;color:var(--accent);margin-bottom:4px">${id}</div>
+    <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:14px">
+      ${s.device_profile?.os || '?'} · ${s.device_profile?.cores || '?'} cœurs · ${s.clips?.length || 0} clips
+    </div>
+    <table class="clips-table">
+      <thead><tr><th>#</th><th>Clip ID</th><th>Phrase</th><th>Audio</th><th>Lieu</th><th>Distance</th></tr></thead>
+      <tbody>
+        ${(s.clips || []).map((c, i) => `
+          <tr>
+            <td style="color:var(--text-dim);font-family:var(--mono);font-size:.68rem">${i + 1}</td>
+            <td style="font-family:var(--mono);font-size:.68rem;color:var(--accent)">${c.clip_id}</td>
+            <td style="max-width:200px;font-size:.75rem">${c.sentence}</td>
+            <td style="font-family:var(--mono);font-size:.68rem;color:var(--text-muted)">${c.audio_clip_name}</td>
+            <td style="font-size:.72rem;color:var(--text-muted)">${c.environment?.lieu || '—'}</td>
+            <td style="font-size:.72rem;color:var(--text-muted)">${c.environment?.distance || '—'}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+  document.getElementById('analysisEmpty').style.display = 'none';
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(S.sessions, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a'); a.href = url; a.download = 'vocalmed_' + Date.now() + '.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════
+// TOAST
+// ═══════════════════════════════
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  ls('vocalmed_theme', isLight ? 'light' : 'dark');
+  updateThemeIcon(isLight);
+}
+function updateThemeIcon(isLight) {
+  document.getElementById('themeIcon').innerHTML = isLight
+    ? `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" stroke="none"/>`
+    : `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+       <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+       <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+       <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
+}
+function initTheme() {
+  const saved = ls('vocalmed_theme');
+  if (saved === 'light') { document.body.classList.add('light'); updateThemeIcon(true); }
+}
+let _tt;
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(_tt); _tt = setTimeout(() => t.className = 'toast', 3500);
+}
+</script>
+</body>
+</html>
