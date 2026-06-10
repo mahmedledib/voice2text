@@ -1,0 +1,114 @@
+{
+  "session_id": "session_gczhl7_mq7srzvz",
+  "user_id": "u_gczhl7zmq7srzec",
+  "device_profile": {
+    "cores": 8,
+    "ram": 16,
+    "os": "Windows",
+    "browser": "Edge",
+    "mobile": false
+  },
+  "timestamp": "2026-06-10T08:47:35.307Z",
+  "clips": [
+    {
+      "clip_id": "session_gczhl7_mq7srzvz_000",
+      "sentence": "Donne au patient MAALOX sirop pendant 14 jours",
+      "num_orders": 1,
+      "audio_clip_name": "session_gczhl7_mq7srzvz_000.webm",
+      "note": null,
+      "environment": {
+        "lieu": null,
+        "distance": null,
+        "conditions": []
+      },
+      "device": {
+        "os": "Windows",
+        "browser": "Edge",
+        "mobile": false,
+        "cores": 8,
+        "ram": 16
+      },
+      "timestamp": "2026-06-10T08:22:46.960Z"
+    },
+    {
+      "clip_id": "session_gczhl7_mq7srzvz_001",
+      "sentence": "Inscris CANAFLUCAN 150MG en gel pour une durée de 1 j",
+      "num_orders": 1,
+      "audio_clip_name": "session_gczhl7_mq7srzvz_001.webm",
+      "note": null,
+      "environment": {
+        "lieu": null,
+        "distance": null,
+        "conditions": []
+      },
+      "device": {
+        "os": "Windows",
+        "browser": "Edge",
+        "mobile": false,
+        "cores": 8,
+        "ram": 16
+      },
+      "timestamp": "2026-06-10T08:28:50.900Z"
+    },
+    {
+      "clip_id": "session_gczhl7_mq7srzvz_002",
+      "sentence": "Ordonne VITONIC GROSSESSE en cp à pour une durée de 30 jours",
+      "num_orders": 1,
+      "audio_clip_name": "session_gczhl7_mq7srzvz_002.webm",
+      "note": null,
+      "environment": {
+        "lieu": null,
+        "distance": null,
+        "conditions": []
+      },
+      "device": {
+        "os": "Windows",
+        "browser": "Edge",
+        "mobile": false,
+        "cores": 8,
+        "ram": 16
+      },
+      "timestamp": "2026-06-10T08:37:32.478Z"
+    },
+    {
+      "clip_id": "session_gczhl7_mq7srzvz_003",
+      "sentence": "Fais faire une analyse HbA1c. En plus fais faire une analyse échographie abdominale",
+      "num_orders": 2,
+      "audio_clip_name": "session_gczhl7_mq7srzvz_003.webm",
+      "note": null,
+      "environment": {
+        "lieu": null,
+        "distance": null,
+        "conditions": []
+      },
+      "device": {
+        "os": "Windows",
+        "browser": "Edge",
+        "mobile": false,
+        "cores": 8,
+        "ram": 16
+      },
+      "timestamp": "2026-06-10T08:43:25.033Z"
+    },
+    {
+      "clip_id": "session_gczhl7_mq7srzvz_004",
+      "sentence": "Note dans l'ordonnance PHILCO CIMETIDINE inj 200MG pendant 18 jours et par ailleurs je prescris alphacol en collyre dosé à 0.2% pendant 30 jours, de plus enregistre une prescription de gencloben creme pour 7 jours",
+      "num_orders": 3,
+      "audio_clip_name": "session_gczhl7_mq7srzvz_004.webm",
+      "note": null,
+      "environment": {
+        "lieu": null,
+        "distance": null,
+        "conditions": []
+      },
+      "device": {
+        "os": "Windows",
+        "browser": "Edge",
+        "mobile": false,
+        "cores": 8,
+        "ram": 16
+      },
+      "timestamp": "2026-06-10T08:47:35.305Z"
+    }
+  ]
+}
