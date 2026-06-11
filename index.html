@@ -2,1049 +2,1371 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-<title>VocalMed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VocalMed — Dashboard</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root{
-  --bg:#0d1117;--surface:#161b22;--surface2:#1e2530;--border:#30363d;
-  --accent:#3b82f6;--accent-glow:rgba(59,130,246,0.15);
-  --red:#ef4444;--red-glow:rgba(239,68,68,0.22);
-  --green:#22c55e;--yellow:#f59e0b;
-  --text:#e6edf3;--text-muted:#8b949e;--text-dim:#484f58;
-  --radius:12px;--radius-sm:8px;--mono:'JetBrains Mono',monospace;
-  --bar-h:80px;
-}
-body.light{
   --bg:#f6f8fa;--surface:#ffffff;--surface2:#f0f2f5;--border:#d0d7de;
-  --accent:#2563eb;--accent-glow:rgba(37,99,235,0.12);
-  --red:#dc2626;--red-glow:rgba(220,38,38,0.15);
-  --green:#16a34a;--yellow:#d97706;
+  --accent:#2563eb;--accent-glow:rgba(37,99,235,0.10);
+  --green:#16a34a;--green-bg:rgba(22,163,74,0.08);
+  --red:#dc2626;--yellow:#d97706;--yellow-bg:rgba(217,119,6,0.08);
+  --purple:#7c3aed;
   --text:#1f2328;--text-muted:#57606a;--text-dim:#afb8c1;
+  --radius:12px;--radius-sm:8px;--mono:'JetBrains Mono',monospace;
 }
-.btn-theme{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
-  background:transparent;color:var(--text-muted);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.btn-theme:hover{border-color:var(--accent);color:var(--accent)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow-x:hidden}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
 
 /* ── HEADER ── */
-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;
-  border-bottom:1px solid var(--border);background:var(--surface);
+header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:100}
-.logo{font-size:1rem;font-weight:700;letter-spacing:-.5px}.logo span{color:var(--accent)}
+.logo{font-size:1rem;font-weight:700;letter-spacing:-.5px}
+.logo span{color:var(--accent)}
+.logo-sub{font-size:.72rem;color:var(--text-muted);margin-left:8px;font-weight:400}
 .header-right{display:flex;align-items:center;gap:12px}
-.header-status{font-size:0.7rem;color:var(--text-muted);font-family:var(--mono)}
-.btn-analysis{padding:5px 14px;border-radius:20px;border:1px solid var(--border);
-  background:transparent;color:var(--text-muted);font-size:0.75rem;cursor:pointer;
+.btn-ghost{padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);font-size:.75rem;cursor:pointer;
+  font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:6px}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost.loading svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--text-dim);flex-shrink:0}
+.conn-dot.ok{background:var(--green)}.conn-dot.err{background:var(--red)}
+.conn-dot.loading{background:var(--yellow);animation:pulse .9s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.conn-label{font-size:.72rem;color:var(--text-muted);font-family:var(--mono)}
+
+/* ── VIEWS ── */
+.view{display:none}.view.active{display:block}
+.main{max-width:1000px;margin:0 auto;padding:28px 24px}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.stat-value{font-size:2rem;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1}
+.stat-value.accent{color:var(--accent)}.stat-value.green{color:var(--green)}
+.stat-label{font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+.stat-sub{font-size:.72rem;color:var(--text-dim);margin-top:3px;font-family:var(--mono)}
+
+/* ── SECTION TITLE ── */
+.section-title{font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;
+  font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── BREAKDOWNS ── */
+.breakdown-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+@media(max-width:600px){.breakdown-row{grid-template-columns:1fr}}
+.breakdown-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.breakdown-title{font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:12px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{font-size:.75rem;color:var(--text-muted);min-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .6s ease}
+.bar-fill.green{background:var(--green)}.bar-fill.yellow{background:var(--yellow)}
+.bar-count{font-size:.72rem;font-family:var(--mono);color:var(--text-muted);min-width:28px;text-align:right}
+
+/* ── SESSIONS TABLE ── */
+.sessions-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px}
+.sessions-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.sessions-table th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);
+  color:var(--text-muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;font-weight:600;background:var(--surface2)}
+.sessions-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.sessions-table tr:last-child td{border-bottom:none}
+.sessions-table tr.clickable:hover td{background:var(--surface2);cursor:pointer}
+.session-id-cell{font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:600}
+.badge.mobile{background:var(--yellow-bg);color:var(--yellow)}
+.badge.desktop{background:var(--accent-glow);color:var(--accent)}
+.clip-count{font-family:var(--mono);font-weight:600;color:var(--text)}
+.ts{font-size:.68rem;color:var(--text-dim);font-family:var(--mono)}
+
+/* ── MODEL MANAGER PANEL ── */
+.model-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 18px;margin-bottom:28px}
+.model-panel-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.model-panel-title{font-size:.72rem;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:.6px;font-weight:600;flex:1}
+.btn-primary{padding:6px 16px;border-radius:20px;border:1px solid var(--accent);
+  background:var(--accent);color:#fff;font-size:.72rem;cursor:pointer;
+  font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary:hover{background:#1d4ed8}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-stop{padding:6px 14px;border-radius:20px;border:1px solid var(--red);
+  background:transparent;color:var(--red);font-size:.72rem;cursor:pointer;
+  font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-stop:hover{background:var(--red);color:#fff}
+.model-list{display:flex;flex-direction:column;gap:7px}
+.model-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface2);flex-wrap:wrap}
+.model-row.is-downloaded{border-color:rgba(22,163,74,.3);background:var(--green-bg)}
+.model-row.is-active{border-color:rgba(37,99,235,.4);background:var(--accent-glow)}
+.model-name{font-size:.78rem;font-weight:600;color:var(--text);min-width:150px}
+.model-size-label{font-size:.65rem;font-family:var(--mono);color:var(--text-muted);min-width:48px}
+.model-chip{font-size:.58rem;padding:1px 7px;border-radius:20px;font-weight:600;white-space:nowrap}
+.model-chip.ok{background:var(--green-bg);color:var(--green)}
+.model-chip.warn{background:var(--yellow-bg);color:var(--yellow)}
+.model-chip.err{background:rgba(220,38,38,.08);color:var(--red)}
+.model-chip.active{background:var(--accent-glow);color:var(--accent)}
+.model-prog-wrap{flex:1;min-width:120px;display:flex;flex-direction:column;gap:3px}
+.model-prog-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden}
+.model-prog-fill{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .15s}
+.model-prog-label{font-size:.6rem;font-family:var(--mono);color:var(--text-dim)}
+.model-btns{display:flex;gap:5px;margin-left:auto;flex-shrink:0}
+.btn-sm{padding:3px 11px;border-radius:20px;font-size:.65rem;cursor:pointer;
+  font-family:inherit;transition:all .15s;white-space:nowrap;border:1px solid}
+.btn-sm.dl{border-color:var(--accent);color:var(--accent);background:transparent}
+.btn-sm.dl:hover{background:var(--accent);color:#fff}
+.btn-sm.del{border-color:var(--border);color:var(--text-muted);background:transparent}
+.btn-sm.del:hover{border-color:var(--red);color:var(--red)}
+.btn-sm:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.active-model-notice{font-size:.68rem;color:var(--accent);font-family:var(--mono);
+  margin-top:10px;padding:6px 10px;background:var(--accent-glow);border-radius:var(--radius-sm)}
+
+/* ── SESSION DETAIL VIEW ── */
+.detail-back{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.btn-back{padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);font-size:.75rem;cursor:pointer;
   font-family:inherit;transition:all .2s}
-.btn-analysis:hover{border-color:var(--accent);color:var(--accent)}
-
-/* ── MAIN CONTENT ── */
-.main{padding:20px 20px calc(var(--bar-h) + 32px);max-width:700px;margin:0 auto}
-
-/* ── SESSION META ── */
-.session-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.progress-label{font-size:0.82rem;color:var(--text-muted)}.progress-label strong{color:var(--text)}
-.meta-right{display:flex;align-items:center;gap:10px}
-.upload-status{display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--text-muted);font-family:var(--mono)}
-.upload-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim)}
-.upload-dot.uploading{background:var(--yellow);animation:blink .9s infinite}
-.upload-dot.ok{background:var(--green)}.upload-dot.error{background:var(--red)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
-.btn-end{padding:4px 12px;border-radius:20px;border:1px solid var(--border);
-  background:transparent;color:var(--text-muted);font-size:0.72rem;cursor:pointer;
-  font-family:inherit;transition:all .2s}
-.btn-end:hover{border-color:var(--red);color:var(--red)}
-
-/* ── PROGRESS BAR ── */
-.prog-track{height:3px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:16px}
-.prog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s ease}
-
-/* ── ENV PANEL ── */
-.env-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:14px 16px;margin-bottom:12px}
-.env-group{margin-bottom:10px}.env-group:last-child{margin-bottom:0}
-.env-label{font-size:0.67rem;color:var(--text-muted);font-weight:500;margin-bottom:7px;
-  text-transform:uppercase;letter-spacing:.5px}
-.flag-options{display:flex;flex-wrap:wrap;gap:6px}
-.flag-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);
-  background:var(--surface2);color:var(--text-muted);font-size:0.78rem;cursor:pointer;
-  transition:all .2s;font-family:inherit}
-.flag-btn.selected{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
-
-/* ── SENTENCE BOX ── */
-.sentence-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:32px 24px;margin-bottom:10px;text-align:center;min-height:120px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
-.sentence-cat{font-size:0.63rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);font-weight:600}
-.sentence-txt{font-size:clamp(1rem,3.2vw,1.45rem);font-weight:500;line-height:1.55;color:var(--text)}
-.sentence-orders{font-size:0.68rem;color:var(--text-dim);font-family:var(--mono)}
-
-/* ══════════════════════════════════════════
-   WHATSAPP BAR
-══════════════════════════════════════════ */
-.wa-bar{
-  position:fixed;bottom:0;left:0;right:0;height:var(--bar-h);
-  background:var(--surface);border-top:1px solid var(--border);
-  display:flex;align-items:center;padding:0 16px;gap:12px;z-index:200;
-}
-.wa-bar.idle{justify-content:center}
-.wa-bar.active{justify-content:space-between}
-
-/* Trash */
-.wa-trash{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--border);
-  background:transparent;color:var(--text-muted);cursor:pointer;
-  display:none;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.wa-trash:hover{border-color:var(--red);color:var(--red)}
-.wa-trash.show{display:flex}
-
-/* Middle */
-.wa-middle{flex:1;display:flex;align-items:center;gap:10px;overflow:hidden;min-width:0;display:none}
-.wa-middle.show{display:flex}
-.wa-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
-.wa-dot.blink{animation:blink .9s infinite}
-.wa-timer{font-family:var(--mono);font-size:0.95rem;color:var(--text);white-space:nowrap;min-width:36px}
-.wa-wave{flex:1;display:flex;align-items:center;gap:1.5px;height:30px;overflow:hidden}
-.wa-wave-bar{width:2.5px;border-radius:99px;background:var(--accent);flex-shrink:0;transition:height .08s}
-.wa-wave-bar.off{background:var(--border);height:2px!important}
-
-/* Play */
-.wa-play{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--accent);
-  background:transparent;color:var(--accent);cursor:pointer;
-  display:none;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.wa-play.show{display:flex}
-.wa-play.playing{background:var(--accent);color:#fff}
-
-/* Pause/resume */
-.wa-pr{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--border);
-  background:transparent;color:var(--text-muted);cursor:pointer;
-  display:none;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.wa-pr.show{display:flex}
-
-/* Main button */
-.wa-main{width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.wa-main.mic{background:var(--surface2);border:2px solid var(--border);color:var(--text-muted)}
-.wa-main.mic:hover{border-color:var(--red);color:var(--red)}
-.wa-main.mic.rec{background:var(--red);border-color:var(--red);color:#fff;animation:rpulse 1.5s infinite}
-.wa-main.send{background:var(--green);color:#fff}
-.wa-main.send:hover{background:#16a34a}
-@keyframes rpulse{0%,100%{box-shadow:0 0 0 0 var(--red-glow)}50%{box-shadow:0 0 0 10px transparent}}
-
-/* Hint */
-.wa-hint{position:fixed;bottom:calc(var(--bar-h) + 4px);left:0;right:0;
-  text-align:center;font-size:0.7rem;color:var(--text-dim);pointer-events:none;z-index:199;padding:3px}
-
-
-
-/* Hidden audio */
-#audioPlayer{display:none}
-
-/* ── MODALS ── */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;
-  justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s}
-.modal.open{opacity:1;pointer-events:all}
-.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:24px 28px;width:300px;text-align:center}
-.modal-box h3{font-size:.95rem;margin-bottom:8px}
-.modal-box p{font-size:.78rem;color:var(--text-muted);margin-bottom:18px}
-.modal-row{display:flex;gap:8px;justify-content:center}
-.btn-cancel{padding:8px 20px;border-radius:20px;font-size:.82rem;font-weight:600;
-  cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:inherit}
-.btn-confirm{padding:8px 20px;border-radius:20px;font-size:.82rem;font-weight:600;
-  cursor:pointer;border:1px solid var(--red);background:transparent;color:var(--red);font-family:inherit}
-
-/* ── ANALYSIS ── */
-.analysis-wrap{padding:20px;max-width:700px;margin:0 auto;display:none}
-.analysis-wrap.show{display:block}
-.an-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.an-header h2{font-size:1rem;font-weight:600}
-.btn-export{padding:7px 16px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:var(--radius-sm);color:var(--text);font-size:0.8rem;font-weight:500;
-  cursor:pointer;font-family:inherit;transition:all .2s}
-.btn-export:hover{border-color:var(--accent);color:var(--accent)}
-.btn-back{padding:5px 14px;border-radius:20px;border:1px solid var(--border);
-  background:transparent;color:var(--text-muted);font-size:0.75rem;cursor:pointer;
-  font-family:inherit;transition:all .2s;margin-right:8px}
 .btn-back:hover{border-color:var(--accent);color:var(--accent)}
-.session-list{display:flex;flex-direction:column;gap:8px}
-.session-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
-  padding:12px 16px;cursor:pointer;transition:border-color .2s}
-.session-row:hover{border-color:var(--accent)}
-.session-row-id{font-family:var(--mono);font-size:0.75rem;color:var(--accent)}
-.session-row-meta{font-size:0.7rem;color:var(--text-muted);margin-top:2px}
-.clips-table{width:100%;border-collapse:collapse;font-size:0.78rem;margin-top:16px}
-.clips-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);
-  color:var(--text-muted);font-size:0.65rem;text-transform:uppercase;letter-spacing:.5px}
-.clips-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
-.clips-table tr:hover td{background:var(--surface2)}
-.empty{text-align:center;padding:50px 20px;color:var(--text-muted);font-size:.85rem}
+.detail-title{font-family:var(--mono);font-size:.85rem;color:var(--accent);font-weight:600}
+.detail-meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.detail-meta-pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:4px 12px;font-size:.72rem;color:var(--text-muted)}
 
-/* ── TOAST ── */
-.toast{position:fixed;bottom:calc(var(--bar-h)+10px);left:50%;
-  transform:translateX(-50%) translateY(8px);
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
-  padding:9px 16px;font-size:0.78rem;z-index:400;opacity:0;transition:all .25s;
-  pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.ok{border-color:var(--green);color:var(--green)}
-.toast.err{border-color:var(--red);color:var(--red)}
-.toast.info{border-color:var(--accent);color:var(--accent)}
+/* ── CLIP CARDS ── */
+.clips-grid{display:flex;flex-direction:column;gap:10px}
+.clip-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.clip-card-top{display:grid;grid-template-columns:2rem 1fr auto;gap:12px;align-items:start}
+.clip-idx{font-family:var(--mono);font-size:.7rem;color:var(--text-dim);padding-top:3px}
+.clip-sentence{font-size:.85rem;color:var(--text);line-height:1.45;font-weight:500}
+.clip-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.clip-tag{font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text-muted)}
+.clip-tag.cat-prescription{background:#eff6ff;color:#1d4ed8}
+.clip-tag.cat-analyse{background:#f0fdf4;color:#15803d}
+.clip-tag.cat-radiologie{background:#fefce8;color:#a16207}
+.clip-ts{font-size:.65rem;font-family:var(--mono);color:var(--text-dim);white-space:nowrap;padding-top:3px}
 
-@media(min-width:701px){
-  .wa-bar{max-width:700px;left:50%;right:auto;transform:translateX(-50%);
-    border-radius:var(--radius) var(--radius) 0 0;
-    border-left:1px solid var(--border);border-right:1px solid var(--border)}
-  .wa-hint{max-width:700px;left:50%;right:auto;transform:translateX(-50%)}
-}
+/* ── AUDIO PLAYER ── */
+.clip-audio{margin-top:10px;display:flex;align-items:center;gap:10px}
+.btn-play{width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .2s}
+.btn-play:hover{background:#1d4ed8}
+.btn-play.playing{background:var(--green)}
+.btn-play.loading{background:var(--yellow);cursor:wait}
+.btn-play:disabled{background:var(--text-dim);cursor:not-allowed}
+.audio-bar{flex:1;height:4px;background:var(--border);border-radius:99px;overflow:hidden;cursor:pointer}
+.audio-progress{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .1s linear;pointer-events:none}
+.audio-time{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);white-space:nowrap;min-width:60px;text-align:right}
+.audio-err{font-size:.68rem;color:var(--red);margin-top:4px}
+
+/* ── QUALITY FLAGS ── */
+.clip-actions{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn-dl-audio{padding:4px 11px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);font-size:.7rem;cursor:pointer;
+  font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:5px}
+.btn-dl-audio:hover{border-color:var(--accent);color:var(--accent)}
+.quality-flags{display:flex;gap:5px;flex-wrap:wrap}
+.qflag{padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);
+  background:transparent;font-size:.68rem;cursor:pointer;font-family:inherit;
+  transition:all .15s;color:var(--text-muted)}
+.qflag:hover{border-color:currentColor}
+.qflag.active{color:#fff;border-color:transparent}
+.qflag[data-q="bon"].active{background:var(--green)}
+.qflag[data-q="acceptable"].active{background:#6366f1}
+.qflag[data-q="bruit"].active{background:var(--yellow);color:#1f2328}
+.qflag[data-q="coupure"].active{background:var(--red)}
+.qflag[data-q="rejeter"].active{background:#1f2328}
+.quality-saved{font-size:.62rem;color:var(--text-dim);font-family:var(--mono);margin-left:2px;opacity:0;transition:opacity .3s}
+.quality-saved.show{opacity:1}
+
+/* ── NOTE ── */
+.clip-note-wrap{margin-top:10px}
+.clip-note{width:100%;min-height:52px;max-height:140px;resize:vertical;border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:7px 10px;font-size:.78rem;font-family:inherit;
+  color:var(--text);background:var(--surface2);line-height:1.45;transition:border-color .15s,background .15s}
+.clip-note:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.clip-note::placeholder{color:var(--text-dim)}
+.note-footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:4px}
+.btn-save-note{padding:4px 13px;border-radius:20px;border:1px solid var(--accent);
+  background:transparent;color:var(--accent);font-size:.7rem;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-save-note:hover{background:var(--accent);color:#fff}
+.btn-save-note:disabled{opacity:.45;cursor:wait}
+.note-status{font-size:.62rem;font-family:var(--mono);color:var(--text-dim);opacity:0;transition:opacity .3s}
+.note-status.show{opacity:1}
+.note-status.err{color:var(--red);opacity:1}
+
+/* ── STT RESULTS ── */
+.stt-section{margin-top:12px;border-top:1px solid var(--border);padding-top:10px}
+.stt-section-title{font-size:.62rem;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:.5px;font-weight:600;margin-bottom:8px}
+.stt-row{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:var(--radius-sm);
+  background:var(--surface2);margin-bottom:5px;flex-wrap:wrap}
+.stt-label{font-size:.65rem;font-family:var(--mono);font-weight:600;color:var(--text-muted);
+  min-width:130px;flex-shrink:0;padding-top:2px}
+.stt-label.browser{color:var(--purple)}
+.stt-text{font-size:.78rem;color:var(--text);flex:1;line-height:1.4;font-style:italic;min-width:100px}
+.stt-text.empty{color:var(--text-dim);font-style:normal}
+.stt-meta{display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.stt-wer{font-size:.63rem;font-family:var(--mono);padding:1px 7px;border-radius:20px;font-weight:600}
+.stt-wer.good{background:var(--green-bg);color:var(--green)}
+.stt-wer.ok{background:var(--yellow-bg);color:var(--yellow)}
+.stt-wer.bad{background:rgba(220,38,38,.08);color:var(--red)}
+.stt-time{font-size:.6rem;font-family:var(--mono);color:var(--text-dim)}
+.btn-run{padding:3px 9px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);font-size:.63rem;cursor:pointer;
+  font-family:inherit;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.btn-run:hover{border-color:var(--accent);color:var(--accent)}
+.btn-run:disabled{opacity:.35;cursor:not-allowed}
+.btn-run.running{border-color:var(--yellow);color:var(--yellow)}
+.stt-no-audio{font-size:.65rem;color:var(--text-dim)}
+
+/* ── EMPTY / ERROR ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.empty-state .icon{font-size:2rem;margin-bottom:10px}
+.empty-state p{font-size:.85rem}
+.empty-state .hint{font-size:.75rem;color:var(--text-dim);margin-top:6px}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Vocal<span>Med</span></div>
+  <div class="logo">Vocal<span>Med</span> <span class="logo-sub">Dashboard</span></div>
   <div class="header-right">
-    <div class="header-status" id="headerStatus">—</div>
-    <button class="btn-theme" id="btnTheme" onclick="toggleTheme()" title="Changer le thème">
-      <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    <div class="conn-dot" id="connDot"></div>
+    <span class="conn-label" id="connLabel">—</span>
+    <button class="btn-ghost" id="btnRefresh" onclick="loadAll()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
       </svg>
+      Actualiser
     </button>
-    <button class="btn-analysis" onclick="showAnalysis()">Analyse</button>
   </div>
 </header>
 
-<!-- ── RECORDING ── -->
-<div class="main" id="mainView">
-  <div class="session-meta">
-    <div class="progress-label">Phrase <strong id="sentenceIndex">1</strong></div>
-    <div class="meta-right">
-      <div class="upload-status">
-        <div class="upload-dot" id="uploadDot"></div>
-        <span id="uploadLabel">—</span>
-      </div>
-      <button class="btn-end" onclick="askEnd()">Terminer</button>
+<!-- ── VIEW: DASHBOARD ── -->
+<div class="view active main" id="viewDashboard">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value accent" id="statTotal">—</div>
+      <div class="stat-label">Clips enregistrés</div>
+      <div class="stat-sub" id="statSessions">— sessions</div>
     </div>
-  </div>
-  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-
-  <!-- Env flags -->
-  <div class="env-panel">
-    <div class="env-group">
-      <div class="env-label">📍 Lieu <span style="font-size:.6rem;opacity:.6">(un seul)</span></div>
-      <div class="flag-options" id="flagLieu">
-        <button class="flag-btn" data-group="lieu" data-val="Bureau privé">Bureau privé</button>
-        <button class="flag-btn" data-group="lieu" data-val="Bureau partagé">Bureau partagé</button>
-        <button class="flag-btn" data-group="lieu" data-val="Couloir">Couloir</button>
-        <button class="flag-btn" data-group="lieu" data-val="Chambre patient">Chambre patient</button>
-        <button class="flag-btn" data-group="lieu" data-val="Salle de soins">Salle de soins</button>
-      </div>
+    <div class="stat-card">
+      <div class="stat-value green" id="statAudioOk">—</div>
+      <div class="stat-label">Audios disponibles</div>
+      <div class="stat-sub" id="statAudioMissing">—</div>
     </div>
-    <div class="env-group">
-      <div class="env-label">📏 Distance <span style="font-size:.6rem;opacity:.6">(un seul)</span></div>
-      <div class="flag-options" id="flagDist">
-        <button class="flag-btn" data-group="distance" data-val="Distance normale">Distance normale</button>
-        <button class="flag-btn" data-group="distance" data-val="Trop proche">Trop proche</button>
-      </div>
+    <div class="stat-card">
+      <div class="stat-value green" id="statSentences">—</div>
+      <div class="stat-label">Phrases uniques</div>
+      <div class="stat-sub" id="statSentencesSub">—</div>
     </div>
-    <div class="env-group">
-      <div class="env-label">🎙️ Conditions <span style="font-size:.6rem;opacity:.6">(multiple)</span></div>
-      <div class="flag-options" id="flagCond">
-        <button class="flag-btn multi" data-val="Bruit de fond">Bruit de fond</button>
-        <button class="flag-btn multi" data-val="Port du masque">Masque</button>
-      </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statUsers">—</div>
+      <div class="stat-label">Utilisateurs</div>
+      <div class="stat-sub">IDs uniques</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statLastDate">—</div>
+      <div class="stat-label">Dernier enregistrement</div>
+      <div class="stat-sub" id="statLastTime">—</div>
     </div>
   </div>
 
-  <!-- Sentence -->
-  <div class="sentence-box">
-    <div class="sentence-cat" id="sentenceCat"></div>
-    <div class="sentence-txt" id="sentenceTxt">Chargement…</div>
-    <div class="sentence-orders" id="sentenceOrders"></div>
-  </div>
-</div>
-
-<!-- ── ANALYSIS ── -->
-<div class="analysis-wrap" id="analysisView">
-  <div class="an-header">
-    <div>
-      <button class="btn-back" onclick="showRecording()">← Retour</button>
-      <strong style="font-size:1rem">Analyse</strong>
+  <!-- MODEL MANAGER — lives on main dashboard, shared across sessions -->
+  <div class="section-title">Modèles STT locaux</div>
+  <div class="model-panel" id="modelPanel">
+    <div class="model-panel-header">
+      <span class="model-panel-title">Téléchargez les modèles une fois, utilisez-les dans toutes les sessions</span>
+      <button class="btn-primary" id="btnDlAll" onclick="downloadAllModels()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Tout télécharger
+      </button>
+      <button class="btn-stop" id="btnStopDl" onclick="stopAllDownloads()" style="display:none">
+        ■ Arrêter
+      </button>
     </div>
-    <button class="btn-export" onclick="exportJSON()">⬇ Exporter JSON</button>
-  </div>
-  <div id="sessionList" class="session-list"></div>
-  <div id="analysisEmpty" class="empty">Aucune session enregistrée.</div>
-</div>
-
-<!-- WA hint -->
-<div class="wa-hint" id="waHint">Appuyez sur le micro pour commencer</div>
-
-<!-- WA Bar -->
-<div class="wa-bar idle" id="waBar">
-  <button class="wa-trash" id="waTrash" onclick="discardClip()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-      <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
-    </svg>
-  </button>
-
-  <div class="wa-middle" id="waMiddle">
-    <div class="wa-dot" id="waDot"></div>
-    <div class="wa-timer" id="waTimer">0:00</div>
-    <div class="wa-wave" id="waWave"></div>
-  </div>
-
-  <button class="wa-play" id="waPlay" onclick="togglePlay()">
-    <svg id="waPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <polygon points="5,3 19,12 5,21"/>
-    </svg>
-  </button>
-
-  <button class="wa-pr" id="waPR" onclick="togglePause()">
-    <svg id="waPRIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
-    </svg>
-  </button>
-
-  <button class="wa-main mic" id="waMain" onclick="handleMain()">
-    <svg id="waMainIcon" width="24" height="24" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3"/>
-      <path d="M5 10a7 7 0 0 0 14 0"/>
-      <line x1="12" y1="19" x2="12" y2="22"/>
-      <line x1="9" y1="22" x2="15" y2="22"/>
-    </svg>
-  </button>
-</div>
-
-<audio id="audioPlayer" onended="onAudioEnded()"></audio>
-
-<!-- Discard modal -->
-<div class="modal" id="discardModal">
-  <div class="modal-box">
-    <h3>Supprimer cet enregistrement ?</h3>
-    <p>L'enregistrement sera supprimé. La phrase sera remplacée.</p>
-    <div class="modal-row">
-      <button class="btn-cancel" onclick="closeModal('discardModal')">Annuler</button>
-      <button class="btn-confirm" onclick="confirmDiscard()">Supprimer</button>
+    <div class="model-list" id="modelList">
+      <div style="color:var(--text-dim);font-size:.75rem">Chargement…</div>
     </div>
+    <div class="active-model-notice" id="activeModelNotice" style="display:none"></div>
+  </div>
+
+  <div class="section-title">Répartition</div>
+  <div class="breakdown-row">
+    <div class="breakdown-card">
+      <div class="breakdown-title">Par lieu</div>
+      <div id="breakLieu"><div style="color:var(--text-dim);font-size:.75rem">—</div></div>
+    </div>
+    <div class="breakdown-card">
+      <div class="breakdown-title">Par OS / appareil</div>
+      <div id="breakOS"><div style="color:var(--text-dim);font-size:.75rem">—</div></div>
+    </div>
+    <div class="breakdown-card">
+      <div class="breakdown-title">Par catégorie</div>
+      <div id="breakCat"><div style="color:var(--text-dim);font-size:.75rem">—</div></div>
+    </div>
+    <div class="breakdown-card">
+      <div class="breakdown-title">Par conditions</div>
+      <div id="breakCond"><div style="color:var(--text-dim);font-size:.75rem">—</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">Sessions</div>
+  <div id="sessionsWrap">
+    <div class="empty-state"><div class="icon">📂</div><p>Chargement…</p></div>
   </div>
 </div>
 
-<!-- End session modal -->
-<div class="modal" id="endModal">
-  <div class="modal-box">
-    <h3>Terminer la session ?</h3>
-    <p><span id="endCount">0</span> clips enregistrés seront conservés.</p>
-    <div class="modal-row">
-      <button class="btn-cancel" onclick="closeModal('endModal')">Continuer</button>
-      <button class="btn-confirm" onclick="closeModal('endModal');endSession()">Terminer</button>
-    </div>
+<!-- ── VIEW: SESSION DETAIL ── -->
+<div class="view main" id="viewDetail">
+  <div class="detail-back">
+    <button class="btn-back" onclick="showDashboard()">← Retour</button>
+    <span class="detail-title" id="detailTitle">—</span>
+    <button class="btn-ghost" onclick="exportQFlags(document.getElementById('detailTitle').textContent)" style="margin-left:auto">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Exporter qualité
+    </button>
   </div>
+  <div class="detail-meta-row" id="detailMeta"></div>
+  <div class="clips-grid" id="detailClips"></div>
 </div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════
+// ═══════════════════════════════════════════════════════
 // CONFIG
-// ═══════════════════════════════
+// ═══════════════════════════════════════════════════════
 const CONFIG = {
-  GITHUB_TOKEN:        'deBoD2mJ85cT5LYVbLlsJ30UxyBzLIE_phg'.split('').reverse().join(''),
-  GITHUB_REPO:         'AdvancedBizConsulting/voice2json',
-  GITHUB_BRANCH:       'main',
-  GITHUB_RESULTS_PATH: 'results/',
-  GITHUB_AUDIOS_PATH:  'audios/',
-  SENTENCES_URL:       'sentences.json',
-  SESSION_SIZE:        30,
+  DRIVE_SENTENCES_FILE_ID: 'gTH0gPREKW7E',
+  GOOGLE_CLIENT_ID:     '529477360899-o85eefhdof4sj65tea7ksg8gcpup3jtk.apps.googleusercontent.com',
+  GOOGLE_CLIENT_SECRET: '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',
+  GOOGLE_REFRESH_TOKEN: '1//04ADBDuJhrrovCgYIARAAGAQSNwF-L9Ir59C_Bar_PRQd-_pMfdq74q_RR46tQhwsML2gnhYD3JYts7j2Pz7WmBOabOieFG5goDk',
+  DRIVE_AUDIOS_FOLDER:  '19OBQpJhmJ0RMeCJRXh7s3r9yZpr720ce',
+  DRIVE_RESULTS_FOLDER: '19OBQpJhmJ0RMeCJRXh7s3r9yZpr720ce',
 };
 
-// ═══════════════════════════════
-// STATE
-// ═══════════════════════════════
-const S = {
-  userId: null, sessionId: null,
-  deviceProfile: {},
-  flags: { lieu: null, distance: null, conditions: [] },
-  sentences: [], sessionSentences: [], currentIndex: 0,
-  clips: [],        // completed clips in this session
-  recorder: null, audioChunks: [],
-  state: 'idle',    // idle | recording | paused | stopped
-  recStart: null, pausedMs: 0, timerInterval: null,
-  audioCtx: null, wavAnim: null, micStream: null,
-  pendingBlob: null, pendingExt: 'webm', objectURL: null,
-  isPlaying: false,
-  sessions: [],     // all sessions from localStorage
-};
+// ═══════════════════════════════════════════════════════
+// MODEL REGISTRY  (lightest → heaviest)
+// ═══════════════════════════════════════════════════════
+const IS_MOBILE = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
-// ═══════════════════════════════
-// INIT
-// ═══════════════════════════════
-window.addEventListener('DOMContentLoaded', async () => {
-  initTheme();
-  initUser();
-  detectDevice();
-  await loadSentences();
-  buildWave();
-  loadFlagListeners();
-  loadSessions();
-  restoreOrInit();
-});
+const MODEL_REGISTRY = [
+  {
+    id: 'vosk-fr-small',
+    label: 'Vosk small (fr)',
+    size: '40 MB',
+    type: 'vosk',
+    mobileOk: true,
+    // Vosk-browser requires WASM files co-hosted — cannot load from a plain HTML file
+    // on a different origin. Mark as local-server-only.
+    requiresServer: true,
+    voskModelUrl: 'http://localhost:8080/vosk-model-small-fr-0.22.zip',
+  },
+  {
+    id: 'whisper-tiny',
+    label: 'Whisper tiny',
+    size: '75 MB',
+    type: 'transformers',
+    hfId: 'Xenova/whisper-tiny',
+    mobileOk: true,
+  },
+  {
+    id: 'whisper-base',
+    label: 'Whisper base',
+    size: '145 MB',
+    type: 'transformers',
+    hfId: 'Xenova/whisper-base',
+    mobileOk: true,
+  },
+  {
+    id: 'whisper-small',
+    label: 'Whisper small',
+    size: '460 MB',
+    type: 'transformers',
+    hfId: 'Xenova/whisper-small',
+    mobileOk: true,
+    mobileSlow: true,
+  },
+  {
+    id: 'whisper-medium',
+    label: 'Whisper medium',
+    size: '1.5 GB',
+    type: 'transformers',
+    hfId: 'Xenova/whisper-medium',
+    mobileOk: false,
+  },
+  {
+    id: 'whisper-large',
+    label: 'Whisper large-v3',
+    size: '3 GB',
+    type: 'transformers',
+    hfId: 'Xenova/whisper-large-v3',
+    mobileOk: false,
+  },
+];
 
-// ═══════════════════════════════
-// USER / COOKIE
-// ═══════════════════════════════
-function initUser() {
-  let id = ls('vocalmed_uid');
-  if (!id) { id = 'u_' + rand() + Date.now().toString(36); ls('vocalmed_uid', id); }
-  S.userId = id;
-  document.getElementById('headerStatus').textContent = id.slice(0, 12);
+const visibleModels = () => MODEL_REGISTRY.filter(m => IS_MOBILE ? m.mobileOk : true);
+
+// ═══════════════════════════════════════════════════════
+// IndexedDB  — stores { modelId, downloadedAt } records
+// No keyPath: we pass the key explicitly to avoid conflicts
+// with any previously created store variant
+// ═══════════════════════════════════════════════════════
+let _idb = null;
+
+async function getIDB() {
+  if (_idb) return _idb;
+  _idb = await new Promise((res, rej) => {
+    // Version 2: fresh store without keyPath to fix the IDB bug
+    const req = indexedDB.open('vocalmed_models_v2', 1);
+    req.onupgradeneeded = e => {
+      // No keyPath — we supply the key explicitly in every put() call
+      e.target.result.createObjectStore('models');
+    };
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = e => rej(e.target.error);
+  });
+  return _idb;
 }
-function rand() { return Math.random().toString(36).slice(2, 9); }
-function ls(k, v) {
-  if (v === undefined) return localStorage.getItem(k);
-  localStorage.setItem(k, v);
+
+async function idbGet(key) {
+  const db = await getIDB();
+  return new Promise((res, rej) => {
+    const req = db.transaction('models','readonly').objectStore('models').get(key);
+    req.onsuccess = e => res(e.target.result ?? null);
+    req.onerror   = e => rej(e.target.error);
+  });
 }
 
-// ═══════════════════════════════
-// DEVICE
-// ═══════════════════════════════
-function detectDevice() {
-  const ua = navigator.userAgent;
-  S.deviceProfile = {
-    cores:   navigator.hardwareConcurrency || '?',
-    ram:     navigator.deviceMemory || '?',
-    os:      /Windows/.test(ua)?'Windows':/Android/.test(ua)?'Android':/iPhone|iPad/.test(ua)?'iOS':/Mac/.test(ua)?'macOS':'Other',
-    browser: /Edg/.test(ua)?'Edge':/Chrome/.test(ua)?'Chrome':/Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Other',
-    mobile:  /Mobi|Android/i.test(ua),
+async function idbSet(key, value) {
+  const db = await getIDB();
+  return new Promise((res, rej) => {
+    const req = db.transaction('models','readwrite').objectStore('models').put(value, key);
+    req.onsuccess = () => res();
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+async function idbDelete(key) {
+  const db = await getIDB();
+  return new Promise((res, rej) => {
+    const req = db.transaction('models','readwrite').objectStore('models').delete(key);
+    req.onsuccess = () => res();
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+async function idbGetAll() {
+  const db = await getIDB();
+  return new Promise((res, rej) => {
+    const store = db.transaction('models','readonly').objectStore('models');
+    const keys = [], vals = [];
+    // getAllKeys + getAll in one transaction
+    const rk = store.getAllKeys();
+    const rv = store.getAll();
+    rk.onsuccess = () => { keys.push(...rk.result); tryRes(); };
+    rv.onsuccess = () => { vals.push(...rv.result); tryRes(); };
+    rk.onerror = rv.onerror = e => rej(e.target.error);
+    function tryRes() {
+      if (rk.readyState === 'done' && rv.readyState === 'done') {
+        const map = {};
+        keys.forEach((k,i) => { map[k] = vals[i]; });
+        res(map);
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// Transformers.js pipeline cache
+// Only ONE pipeline is kept in memory at a time.
+// ═══════════════════════════════════════════════════════
+let _activePipeline   = null;  // { modelId, pipe }
+let _activeModelId    = null;
+
+async function getTransformers() {
+  if (!window._txjs) {
+    window._txjs = await import(
+      'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js'
+    );
+  }
+  return window._txjs;
+}
+
+async function loadPipeline(spec) {
+  // If the same model is already loaded, reuse it
+  if (_activePipeline && _activeModelId === spec.id) return _activePipeline;
+
+  // Unload previous model — dereference so GC can reclaim memory
+  if (_activePipeline) {
+    console.log('[STT] Unloading', _activeModelId, 'to free memory');
+    _activePipeline = null;
+    _activeModelId  = null;
+    // Give GC a moment
+    await new Promise(r => setTimeout(r, 100));
+  }
+
+  const { pipeline, env } = await getTransformers();
+  env.allowRemoteModels = true;
+
+  // Weights are cached by Transformers.js in Cache API after first download
+  const pipe = await pipeline('automatic-speech-recognition', spec.hfId, {
+    language: 'french',
+  });
+
+  _activePipeline = pipe;
+  _activeModelId  = spec.id;
+  updateActiveModelNotice();
+  return pipe;
+}
+
+function updateActiveModelNotice() {
+  const el = document.getElementById('activeModelNotice');
+  if (!el) return;
+  if (_activeModelId) {
+    const spec = MODEL_REGISTRY.find(m => m.id === _activeModelId);
+    el.style.display = 'block';
+    el.textContent = `Modèle actif en mémoire : ${spec?.label || _activeModelId} — le modèle précédent a été libéré`;
+  } else {
+    el.style.display = 'none';
+  }
+  // Also refresh model rows to show "actif" chip
+  renderModelList();
+}
+
+// ═══════════════════════════════════════════════════════
+// DOWNLOAD CONTROL
+// ═══════════════════════════════════════════════════════
+let _stopDownloads = false;
+const _activeDownloads = new Set();
+
+function stopAllDownloads() {
+  _stopDownloads = true;
+  document.getElementById('btnStopDl').style.display = 'none';
+  document.getElementById('btnDlAll').disabled = false;
+  // Mark any in-progress rows as stopped
+  _activeDownloads.forEach(id => {
+    const label = document.getElementById('mplabel_' + id);
+    if (label) label.textContent = 'Arrêté';
+  });
+  _activeDownloads.clear();
+}
+
+// ═══════════════════════════════════════════════════════
+// MODEL DOWNLOAD — individual
+// ═══════════════════════════════════════════════════════
+async function downloadModel(modelId) {
+  if (_activeDownloads.has(modelId)) return;
+  const spec = MODEL_REGISTRY.find(m => m.id === modelId);
+  if (!spec) return;
+
+  // Vosk requires a local server — not downloadable from plain HTML
+  if (spec.requiresServer) {
+    alert(`Vosk nécessite un serveur local.\nConfigurez voskModelUrl dans CONFIG et lancez un serveur HTTP local avec les fichiers WASM de vosk-browser.\nURL configurée : ${spec.voskModelUrl}`);
+    return;
+  }
+
+  _activeDownloads.add(modelId);
+  _stopDownloads = false;
+
+  const btn     = document.getElementById('mbtn_'    + modelId);
+  const progW   = document.getElementById('mrow_prog_' + modelId);
+  const fill    = document.getElementById('mfill_'   + modelId);
+  const plabel  = document.getElementById('mplabel_' + modelId);
+
+  if (btn)  btn.style.display = 'none';
+  if (progW) progW.style.display = 'flex';
+  document.getElementById('btnStopDl').style.display = '';
+
+  const setP = (pct, text) => {
+    if (fill)   fill.style.width  = pct + '%';
+    if (plabel) plabel.textContent = text || pct + '%';
   };
-}
 
-// ═══════════════════════════════
-// SENTENCES
-// ═══════════════════════════════
-async function loadSentences() {
   try {
-    const r = await fetch(CONFIG.SENTENCES_URL);
-    S.sentences = await r.json();
-  } catch {
-    S.sentences = [
-      { sentence: "Prescrivez de l'amoxicilline 500mg trois fois par jour pendant 7 jours", num_orders: 1 },
-      { sentence: "Ordonnez une NFS et un bilan hépatique complet", num_orders: 2 },
-      { sentence: "Demandez une radiographie thoracique de face", num_orders: 1 },
-      { sentence: "Prescrivez du paracétamol 1g toutes les 8 heures si douleur", num_orders: 1 },
-      { sentence: "Commandez une échographie abdominale et un dosage de la lipase", num_orders: 2 },
-    ];
-    showToast('sentences.json introuvable — démo', 'info');
+    const { pipeline, env } = await getTransformers();
+    env.allowRemoteModels = true;
+
+    setP(0, 'Connexion…');
+
+    await pipeline('automatic-speech-recognition', spec.hfId, {
+      language: 'french',
+      progress_callback: (p) => {
+        if (_stopDownloads) throw new Error('Téléchargement arrêté');
+        if (p.status === 'downloading') {
+          const pct = p.total ? Math.round((p.loaded / p.total) * 100) : 0;
+          setP(pct, `${pct}% — ${(p.file || '').split('/').pop()}`);
+        } else if (p.status === 'loading') {
+          setP(99, 'Chargement…');
+        }
+      },
+    });
+
+    // Record as downloaded in IDB
+    await idbSet(modelId, { downloadedAt: Date.now() });
+    setP(100, 'Prêt');
+
+  } catch (e) {
+    if (plabel) plabel.textContent = '⚠ ' + e.message;
+    if (btn)  { btn.style.display = ''; }
+    _activeDownloads.delete(modelId);
+    if (!_stopDownloads) await new Promise(r => setTimeout(r, 2000));
+    await renderModelList();
+    return;
   }
-}
-function pickSentences() {
-  S.sessionSentences = [...S.sentences].sort(() => Math.random() - .5).slice(0, CONFIG.SESSION_SIZE);
+
+  _activeDownloads.delete(modelId);
+  if (_activeDownloads.size === 0) {
+    document.getElementById('btnStopDl').style.display = 'none';
+  }
+  await renderModelList();
+  refreshSttRows(); // update "Lancer" buttons in open session
 }
 
-// ═══════════════════════════════
-// SESSION PERSISTENCE
-// ═══════════════════════════════
-function saveSession() {
-  if (!S.sessionId) return;
-  ls('vocalmed_active', JSON.stringify({
-    sessionId: S.sessionId,
-    userId: S.userId,
-    flags: S.flags,
-    sessionSentences: S.sessionSentences,
-    currentIndex: S.currentIndex,
-    clips: S.clips,
-  }));
-}
-function clearSession() { localStorage.removeItem('vocalmed_active'); }
+async function downloadAllModels() {
+  _stopDownloads = false;
+  document.getElementById('btnDlAll').disabled = true;
+  document.getElementById('btnStopDl').style.display = '';
 
-function restoreOrInit() {
-  const raw = ls('vocalmed_active');
-  if (raw) {
-    try {
-      const snap = JSON.parse(raw);
-      S.sessionId        = snap.sessionId;
-      S.flags            = snap.flags || { lieu: null, distance: null, conditions: [] };
-      S.sessionSentences = snap.sessionSentences;
-      S.currentIndex     = snap.currentIndex;
-      S.clips            = snap.clips || [];
-      restoreFlagUI();
-      showToast('Session reprise — phrase ' + (S.currentIndex + 1), 'info');
-      renderSentence();
-      return;
-    } catch {}
+  const stored = await idbGetAll();
+  const toDownload = visibleModels().filter(m => !m.requiresServer && !stored[m.id]);
+
+  for (const m of toDownload) {
+    if (_stopDownloads) break;
+    await downloadModel(m.id);
   }
-  // Fresh session
-  S.sessionId = 'session_' + S.userId.slice(2, 8) + '_' + Date.now().toString(36);
-  pickSentences();
-  S.currentIndex = 0; S.clips = [];
-  saveSession();
-  renderSentence();
+
+  document.getElementById('btnDlAll').disabled = false;
+  document.getElementById('btnStopDl').style.display = 'none';
 }
 
-function restoreFlagUI() {
-  if (S.flags.lieu) {
-    document.querySelectorAll('.flag-btn[data-group="lieu"]').forEach(b =>
-      b.classList.toggle('selected', b.dataset.val === S.flags.lieu));
+async function deleteModel(modelId) {
+  const spec = MODEL_REGISTRY.find(m => m.id === modelId);
+  if (!confirm(`Supprimer "${spec?.label}" du cache ?`)) return;
+
+  await idbDelete(modelId);
+
+  // If this model was the active one in memory, release it
+  if (_activeModelId === modelId) {
+    _activePipeline = null;
+    _activeModelId  = null;
+    updateActiveModelNotice();
   }
-  if (S.flags.distance) {
-    document.querySelectorAll('.flag-btn[data-group="distance"]').forEach(b =>
-      b.classList.toggle('selected', b.dataset.val === S.flags.distance));
-  }
-  (S.flags.conditions || []).forEach(val =>
-    document.querySelectorAll('.flag-btn.multi').forEach(b => {
-      if (b.dataset.val === val) b.classList.add('selected');
-    })
+
+  await renderModelList();
+  refreshSttRows();
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER MODEL LIST
+// ═══════════════════════════════════════════════════════
+async function renderModelList() {
+  const stored = await idbGetAll();
+  const models = visibleModels();
+  const el = document.getElementById('modelList');
+  if (!el) return;
+
+  el.innerHTML = models.map(m => {
+    const isDl   = !!stored[m.id];
+    const isAct  = _activeModelId === m.id;
+    const dlDate = stored[m.id] ? new Date(stored[m.id].downloadedAt).toLocaleDateString('fr-FR') : null;
+    const isDown = _activeDownloads.has(m.id);
+    const rowCls = isDl ? (isAct ? 'model-row is-downloaded is-active' : 'model-row is-downloaded') : 'model-row';
+
+    let chips = '';
+    if (isAct)             chips += `<span class="model-chip active">● actif</span>`;
+    else if (isDl)         chips += `<span class="model-chip ok">✓ ${dlDate}</span>`;
+    if (m.mobileSlow && IS_MOBILE) chips += `<span class="model-chip warn">⚠ lent</span>`;
+    if (m.requiresServer)  chips += `<span class="model-chip warn">serveur local</span>`;
+    if (!m.mobileOk)       chips += `<span class="model-chip err">desktop</span>`;
+
+    const progHtml = `
+      <div class="model-prog-wrap" id="mrow_prog_${m.id}" style="${isDown?'':'display:none'}">
+        <div class="model-prog-bar"><div class="model-prog-fill" id="mfill_${m.id}"></div></div>
+        <div class="model-prog-label" id="mplabel_${m.id}">0%</div>
+      </div>`;
+
+    const btns = isDl
+      ? `<button class="btn-sm del" onclick="deleteModel('${m.id}')">Supprimer</button>`
+      : m.requiresServer
+        ? `<button class="btn-sm dl" onclick="downloadModel('${m.id}')">Info</button>`
+        : `<button class="btn-sm dl" id="mbtn_${m.id}" onclick="downloadModel('${m.id}')" ${isDown?'disabled':''}>
+             ${isDown ? '…' : 'Télécharger'}
+           </button>`;
+
+    return `
+      <div class="${rowCls}" id="mrow_${m.id}">
+        <div class="model-name">${m.label}</div>
+        <div class="model-size-label">${m.size}</div>
+        ${chips}
+        ${progHtml}
+        <div class="model-btns">${btns}</div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// GOOGLE TOKEN
+// ═══════════════════════════════════════════════════════
+let _token = null, _expiry = 0, _tokenPromise = null;
+async function getToken() {
+  if (_token && _expiry - Date.now() > 60_000) return _token;
+  if (_tokenPromise) return _tokenPromise;
+  _tokenPromise = (async () => {
+    const r = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({
+        client_id: CONFIG.GOOGLE_CLIENT_ID, client_secret: CONFIG.GOOGLE_CLIENT_SECRET,
+        refresh_token: CONFIG.GOOGLE_REFRESH_TOKEN, grant_type: 'refresh_token',
+      }),
+    });
+    if (!r.ok) { const d = await r.json().catch(()=>({})); throw new Error(d.error_description||r.status); }
+    const d = await r.json();
+    _token = d.access_token; _expiry = Date.now() + d.expires_in * 1000;
+    return _token;
+  })();
+  try { return await _tokenPromise; } finally { _tokenPromise = null; }
+}
+
+// ═══════════════════════════════════════════════════════
+// DRIVE HELPERS
+// ═══════════════════════════════════════════════════════
+async function driveList(folderId, mimeType) {
+  const tok = await getToken();
+  let files = [], pt = null;
+  do {
+    let q = `'${folderId}' in parents and trashed=false`;
+    if (mimeType) q += ` and mimeType='${mimeType}'`;
+    let url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,modifiedTime)&pageSize=100`;
+    if (pt) url += '&pageToken=' + pt;
+    const r = await fetch(url, {headers:{'Authorization':'Bearer '+tok}});
+    if (!r.ok) throw new Error('Drive list ' + r.status);
+    const d = await r.json();
+    files = files.concat(d.files||[]);
+    pt = d.nextPageToken||null;
+  } while (pt);
+  return files;
+}
+
+async function driveReadJSON(fileId) {
+  const tok = await getToken();
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+    {headers:{'Authorization':'Bearer '+tok}});
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+async function driveReadBlob(fileId) {
+  const tok = await getToken();
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+    {headers:{'Authorization':'Bearer '+tok}});
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.blob();
+}
+
+async function driveWriteJSON(fileId, data) {
+  const tok = await getToken();
+  const r = await fetch(
+    `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+    { method:'PATCH', headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},
+      body: JSON.stringify(data, null, 2) }
   );
+  if (!r.ok) throw new Error('Drive write ' + r.status);
 }
 
-// ═══════════════════════════════
-// FLAGS
-// ═══════════════════════════════
-function loadFlagListeners() {
-  // Single-select groups: lieu, distance
-  ['lieu', 'distance'].forEach(group => {
-    document.querySelectorAll(`.flag-btn[data-group="${group}"]`).forEach(btn => {
-      btn.addEventListener('click', () => {
-        const was = btn.classList.contains('selected');
-        document.querySelectorAll(`.flag-btn[data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
-        if (!was) { btn.classList.add('selected'); S.flags[group] = btn.dataset.val; }
-        else S.flags[group] = null;
+let sessionFileIndex = {};
+
+// ═══════════════════════════════════════════════════════
+// LOAD ALL
+// ═══════════════════════════════════════════════════════
+let allSessions = [], audioIndex = {};
+
+async function loadAll() {
+  setConn('loading','Connexion…');
+  setRefreshLoading(true);
+  stopCurrentAudio();
+
+  try {
+    await renderModelList();  // show model state immediately
+
+    const files = await driveList(CONFIG.DRIVE_RESULTS_FOLDER, 'application/json');
+    setConn('loading', `Lecture ${files.length} fichiers…`);
+    allSessions = []; sessionFileIndex = {};
+    const BATCH = 8;
+    for (let i = 0; i < files.length; i += BATCH) {
+      const batch = files.slice(i, i+BATCH);
+      const res = await Promise.allSettled(batch.map(f => driveReadJSON(f.id)));
+      res.forEach((r,j) => {
+        if (r.status==='fulfilled') {
+          allSessions.push(r.value);
+          if (r.value.session_id) sessionFileIndex[r.value.session_id] = files[i+j].id;
+        }
       });
-    });
+    }
+
+    setConn('loading','Index audio…');
+    const af = await driveList(CONFIG.DRIVE_AUDIOS_FOLDER);
+    audioIndex = {};
+    af.forEach(f => { audioIndex[f.name] = f.id; });
+
+    let totalSentences = null;
+    if (CONFIG.DRIVE_SENTENCES_FILE_ID && !CONFIG.DRIVE_SENTENCES_FILE_ID.startsWith('YOUR')) {
+      try { totalSentences = (await driveReadJSON(CONFIG.DRIVE_SENTENCES_FILE_ID)).length; } catch {}
+    }
+
+    setConn('ok', allSessions.length + ' session' + (allSessions.length>1?'s':'') + ' · ' + Object.keys(audioIndex).length + ' audios');
+    renderDashboard(totalSentences);
+  } catch(e) {
+    console.error(e);
+    setConn('err', e.message);
+    document.getElementById('sessionsWrap').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p>
+       <p class="hint">Vérifiez les credentials dans CONFIG</p></div>`;
+  } finally {
+    setRefreshLoading(false);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// DASHBOARD VIEW
+// ═══════════════════════════════════════════════════════
+function renderDashboard(totalSentences) {
+  if (!allSessions.length) {
+    document.getElementById('sessionsWrap').innerHTML =
+      `<div class="empty-state"><div class="icon">🎙️</div><p>Aucune session trouvée.</p></div>`;
+    return;
+  }
+  const allClips = allSessions.flatMap(s => s.clips||[]);
+  const uniqueSentences = new Set(allClips.map(c => c.sentence)).size;
+  const uniqueUsers = new Set(allSessions.map(s => s.user_id).filter(Boolean)).size;
+  const timestamps = allClips.map(c => c.timestamp).filter(Boolean).sort();
+  const latest = timestamps.at(-1);
+  const audioOk = allClips.filter(c => audioIndex[c.audio_clip_name]).length;
+  const miss = allClips.length - audioOk;
+
+  document.getElementById('statTotal').textContent    = allClips.length;
+  document.getElementById('statSessions').textContent = allSessions.length + ' session'+(allSessions.length>1?'s':'');
+  document.getElementById('statAudioOk').textContent      = audioOk;
+  document.getElementById('statAudioMissing').textContent = miss>0 ? miss+' manquant'+(miss>1?'s':'') : 'aucun manquant';
+  document.getElementById('statSentences').textContent    = uniqueSentences;
+  document.getElementById('statSentencesSub').textContent = totalSentences ? `sur ${totalSentences} disponibles` : 'phrases uniques';
+  document.getElementById('statUsers').textContent    = uniqueUsers;
+  document.getElementById('statLastDate').textContent = latest ? new Date(latest).toLocaleDateString('fr-FR') : '—';
+  document.getElementById('statLastTime').textContent = latest ? new Date(latest).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+
+  renderBarBreakdown('breakLieu', countBy(allClips, c => c.environment?.lieu||'Non renseigné'));
+  renderBarBreakdown('breakOS',   countBy(allClips, c => (c.device?.os||'?')+(c.device?.mobile?' 📱':' 🖥')));
+  renderBarBreakdown('breakCat',  countBy(allClips, c => guessCategory(c.sentence)));
+  renderBarBreakdown('breakCond', countByMulti(allClips, c => c.environment?.conditions?.length ? c.environment.conditions : ['Aucune']));
+
+  const sorted = [...allSessions].sort((a,b) => {
+    const ta = (a.clips||[]).at(-1)?.timestamp || a.timestamp || '';
+    const tb = (b.clips||[]).at(-1)?.timestamp || b.timestamp || '';
+    return tb.localeCompare(ta);
   });
-  // Multi-select: conditions
-  document.querySelectorAll('.flag-btn.multi').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('selected');
-      S.flags.conditions = [...document.querySelectorAll('.flag-btn.multi.selected')].map(b => b.dataset.val);
-    });
+
+  document.getElementById('sessionsWrap').innerHTML = `
+    <div class="sessions-wrap">
+      <table class="sessions-table">
+        <thead><tr>
+          <th>Session ID</th><th>Utilisateur</th><th>Clips</th><th>Appareil</th><th>Dernier clip</th>
+        </tr></thead>
+        <tbody>
+          ${sorted.map(s => {
+            const clips = s.clips||[];
+            const lastTs = clips.at(-1)?.timestamp;
+            return `<tr class="clickable" onclick="openSession('${s.session_id}')">
+              <td><span class="session-id-cell">${s.session_id}</span></td>
+              <td><span style="font-family:var(--mono);font-size:.7rem;color:var(--text-muted)">${(s.user_id||'—').slice(0,12)}</span></td>
+              <td><span class="clip-count">${clips.length}</span></td>
+              <td><span class="badge ${s.device_profile?.mobile?'mobile':'desktop'}">${s.device_profile?.os||'?'}</span></td>
+              <td><span class="ts">${lastTs?new Date(lastTs).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—'}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// SESSION DETAIL VIEW
+// ═══════════════════════════════════════════════════════
+let _currentSessionId = null;
+
+async function openSession(sessionId) {
+  const s = allSessions.find(x => x.session_id === sessionId);
+  if (!s) return;
+  _currentSessionId = sessionId;
+  stopCurrentAudio();
+
+  document.getElementById('detailTitle').textContent = sessionId;
+  const clips = s.clips||[];
+  const dp = s.device_profile||{};
+  document.getElementById('detailMeta').innerHTML = [
+    clips.length + ' clip'+(clips.length>1?'s':''),
+    dp.os||'?',
+    dp.mobile ? '📱 Mobile' : '🖥 Desktop',
+    dp.browser||'?',
+    s.timestamp ? new Date(s.timestamp).toLocaleDateString('fr-FR') : '—',
+  ].map(t => `<span class="detail-meta-pill">${t}</span>`).join('');
+
+  renderClips(s);
+  showView('viewDetail');
+}
+
+function renderClips(s) {
+  const clips = s.clips||[];
+  if (!clips.length) {
+    document.getElementById('detailClips').innerHTML =
+      '<div style="color:var(--text-dim);font-size:.8rem;padding:12px">Aucun clip.</div>';
+    return;
+  }
+  document.getElementById('detailClips').innerHTML = clips.map((c,i) => {
+    const cat = guessCategory(c.sentence);
+    const envTags = [c.environment?.lieu, c.environment?.distance, ...(c.environment?.conditions||[])].filter(Boolean);
+    const audioId = audioIndex[c.audio_clip_name];
+    const ts = c.timestamp ? new Date(c.timestamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+
+    return `
+      <div class="clip-card" id="card_${i}">
+        <div class="clip-card-top">
+          <div class="clip-idx">${String(i+1).padStart(2,'0')}</div>
+          <div>
+            <div class="clip-sentence">${esc(c.sentence)}</div>
+            <div class="clip-tags">
+              <span class="clip-tag cat-${cat.toLowerCase()}">${cat}</span>
+              ${envTags.map(t=>`<span class="clip-tag">${esc(t)}</span>`).join('')}
+            </div>
+          </div>
+          <div class="clip-ts">${ts}</div>
+        </div>
+
+        <!-- AUDIO -->
+        <div class="clip-audio">
+          ${audioId
+            ? `<button class="btn-play" id="btn_${i}" onclick="togglePlay(${i},'${audioId}','${esc(c.audio_clip_name)}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+              </button>
+              <div class="audio-bar" id="bar_${i}" onclick="seekAudio(event,${i})">
+                <div class="audio-progress" id="prog_${i}"></div>
+              </div>
+              <span class="audio-time" id="time_${i}">0:00 / 0:00</span>`
+            : `<span style="font-size:.7rem;color:var(--text-dim)">Audio non trouvé</span>`}
+        </div>
+
+        <!-- STT -->
+        <div class="stt-section" id="stt_${i}">
+          <div class="stt-section-title">Reconnaissance vocale</div>
+          ${buildSttRows(c, i, !!audioId)}
+        </div>
+
+        <!-- QUALITY + ACTIONS -->
+        <div class="clip-actions">
+          ${audioId ? `<button class="btn-dl-audio" onclick="downloadClip(${i},'${audioId}','${esc(c.audio_clip_name)}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>Télécharger</button>` : ''}
+          <div class="quality-flags">
+            ${['bon','acceptable','bruit','coupure','rejeter'].map(q => {
+              const active = getQFlag(c.clip_id)===q?' active':'';
+              const lbl = {bon:'✓ Bon',acceptable:'~ OK',bruit:'⚡ Bruit',coupure:'✂ Coupure',rejeter:'✕ Rejeter'};
+              return `<button class="qflag${active}" data-q="${q}" onclick="setQFlag('${c.clip_id}',${i},'${q}')">${lbl[q]}</button>`;
+            }).join('')}
+            <span class="quality-saved" id="qsaved_${i}">✓ sauvegardé</span>
+          </div>
+        </div>
+
+        <!-- NOTE -->
+        <div class="clip-note-wrap">
+          <textarea class="clip-note" id="note_${i}" placeholder="Note sur ce clip…" oninput="onNoteInput(${i})">${esc(c.note||'')}</textarea>
+          <div class="note-footer">
+            <span class="note-status" id="nstatus_${i}"></span>
+            <button class="btn-save-note" id="nbtn_${i}" onclick="saveNote('${s.session_id}','${c.clip_id}',${i})" disabled>Enregistrer</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// STT ROW BUILDER
+// ═══════════════════════════════════════════════════════
+function buildSttRows(c, clipIdx, hasAudio) {
+  const results = c.stt_results || {};
+  let html = '';
+
+  // Browser built-in (always shown first)
+  html += sttRow('browser', 'Navigateur (intégré)', results['browser'], clipIdx, true, hasAudio);
+
+  // Local models
+  for (const m of visibleModels()) {
+    html += sttRow(m.id, m.label, results[m.id], clipIdx, false, hasAudio);
+  }
+  return html;
+}
+
+function sttRow(modelId, label, result, clipIdx, isBrowser, hasAudio) {
+  const safeId = modelId.replace(/[^a-z0-9]/gi,'_');
+  const labelCls = 'stt-label' + (isBrowser ? ' browser' : '');
+
+  if (result) {
+    const werCls = result.wer <= 0.1 ? 'good' : result.wer <= 0.3 ? 'ok' : 'bad';
+    const werPct = Math.round(result.wer * 100);
+    const tSec   = (result.time_ms / 1000).toFixed(2);
+    return `
+      <div class="stt-row" id="sttrow_${clipIdx}_${safeId}">
+        <div class="${labelCls}">${label}</div>
+        <div class="stt-text">"${esc(result.text)}"</div>
+        <div class="stt-meta">
+          <span class="stt-wer ${werCls}">WER ${werPct}%</span>
+          <span class="stt-time">${tSec}s</span>
+          ${hasAudio ? `<button class="btn-run" onclick="runStt('${modelId}',${clipIdx})">↺</button>` : ''}
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="stt-row" id="sttrow_${clipIdx}_${safeId}">
+      <div class="${labelCls}">${label}</div>
+      <div class="stt-text empty">—</div>
+      <div class="stt-meta">
+        ${hasAudio
+          ? `<button class="btn-run" id="sttbtn_${clipIdx}_${safeId}" onclick="runStt('${modelId}',${clipIdx})">▶ Lancer</button>`
+          : `<span class="stt-no-audio">Pas d'audio</span>`}
+      </div>
+    </div>`;
+}
+
+function refreshSttRows() {
+  if (!_currentSessionId) return;
+  const s = allSessions.find(x => x.session_id === _currentSessionId);
+  if (!s) return;
+  (s.clips||[]).forEach((c,i) => {
+    const el = document.getElementById('stt_'+i);
+    if (!el) return;
+    el.innerHTML = '<div class="stt-section-title">Reconnaissance vocale</div>'
+      + buildSttRows(c, i, !!audioIndex[c.audio_clip_name]);
   });
 }
 
-// ═══════════════════════════════
-// SENTENCE RENDER
-// ═══════════════════════════════
-function renderSentence() {
-  if (S.currentIndex >= S.sessionSentences.length) { endSession(); return; }
-  const s = S.sessionSentences[S.currentIndex];
-  document.getElementById('sentenceIndex').textContent = S.currentIndex + 1;
-  document.getElementById('sentenceTxt').textContent   = s.sentence;
-  document.getElementById('sentenceOrders').textContent = s.num_orders + (s.num_orders > 1 ? ' ordres' : ' ordre');
-  document.getElementById('sentenceCat').textContent   = guessCategory(s.sentence);
-  document.getElementById('progFill').style.width      = Math.round((S.currentIndex / S.sessionSentences.length) * 100) + '%';
+// ═══════════════════════════════════════════════════════
+// RUN STT
+// ═══════════════════════════════════════════════════════
+async function runStt(modelId, clipIdx) {
+  const s = allSessions.find(x => x.session_id === _currentSessionId);
+  if (!s) return;
+  const clip = s.clips[clipIdx];
+  const audioId = audioIndex[clip.audio_clip_name];
+  if (!audioId) return;
+
+  const safeId = modelId.replace(/[^a-z0-9]/gi,'_');
+  const row    = document.getElementById(`sttrow_${clipIdx}_${safeId}`);
+  const btn    = row?.querySelector('.btn-run');
+
+  if (btn) { btn.disabled = true; btn.classList.add('running'); btn.textContent = '…'; }
+
+  try {
+    // Get audio blob (reuse cache)
+    if (!blobURLs[audioId]) {
+      const blob = await driveReadBlob(audioId);
+      blobURLs[audioId] = URL.createObjectURL(blob);
+    }
+    const blob = await fetch(blobURLs[audioId]).then(r => r.blob());
+
+    let text = '';
+    const t0 = performance.now();
+
+    if (modelId === 'browser') {
+      text = await runBrowserSTT(blob);
+    } else {
+      const spec = MODEL_REGISTRY.find(m => m.id === modelId);
+      if (!spec) throw new Error('Modèle inconnu');
+      const rec = await idbGet(modelId);
+      if (!rec) throw new Error('Non téléchargé — téléchargez ce modèle d\'abord');
+      text = await runWhisperSTT(spec, blob);
+    }
+
+    const time_ms = Math.round(performance.now() - t0);
+    const wer = computeWER(clip.sentence, text);
+
+    // Save result into session and write to Drive
+    clip.stt_results = clip.stt_results || {};
+    clip.stt_results[modelId] = { text, wer, time_ms };
+    const fileId = sessionFileIndex[_currentSessionId];
+    if (fileId) await driveWriteJSON(fileId, s);
+
+    // Re-render this clip's STT block
+    const sttEl = document.getElementById('stt_' + clipIdx);
+    if (sttEl) sttEl.innerHTML =
+      '<div class="stt-section-title">Reconnaissance vocale</div>' +
+      buildSttRows(clip, clipIdx, true);
+
+  } catch(e) {
+    console.error('[runStt]', e);
+    if (btn) { btn.disabled = false; btn.classList.remove('running'); btn.textContent = '▶ Lancer'; }
+    const textEl = row?.querySelector('.stt-text');
+    if (textEl) { textEl.textContent = '⚠ ' + e.message; textEl.style.color = 'var(--red)'; }
+  }
+}
+
+// ── Browser (Web Speech API) ──
+function runBrowserSTT(blob) {
+  return new Promise((resolve, reject) => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { reject(new Error('Web Speech API indisponible dans ce navigateur')); return; }
+    const url   = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    const rec   = new SR();
+    rec.lang = 'fr-FR'; rec.continuous = false; rec.interimResults = false;
+    let done = false;
+    rec.onresult = e => { done = true; resolve(e.results[0][0].transcript); URL.revokeObjectURL(url); };
+    rec.onerror  = e => { if (!done) reject(new Error('SpeechRecognition: ' + e.error)); URL.revokeObjectURL(url); };
+    rec.onend    = () => { if (!done) reject(new Error('Aucun résultat (audio trop court ou silence)')); };
+    audio.play().catch(()=>{});
+    rec.start();
+    audio.onended = () => rec.stop();
+  });
+}
+
+// ── Whisper via Transformers.js ──
+async function runWhisperSTT(spec, blob) {
+  const pipe = await loadPipeline(spec);
+
+  const arrayBuf = await blob.arrayBuffer();
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+  const decoded  = await audioCtx.decodeAudioData(arrayBuf);
+  audioCtx.close();
+
+  // Resample to mono 16kHz
+  const offCtx  = new OfflineAudioContext(1, Math.ceil(decoded.duration * 16000), 16000);
+  const src     = offCtx.createBufferSource();
+  src.buffer    = decoded;
+  src.connect(offCtx.destination);
+  src.start();
+  const rendered = await offCtx.startRendering();
+  const f32      = rendered.getChannelData(0);
+
+  const result = await pipe(f32, { language: 'french', task: 'transcribe' });
+  return result.text.trim();
+}
+
+// ═══════════════════════════════════════════════════════
+// WER
+// ═══════════════════════════════════════════════════════
+function normText(t) {
+  return (t||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,'')
+    .replace(/\s+/g,' ').trim();
+}
+
+function computeWER(ref, hyp) {
+  const r = normText(ref).split(' ').filter(Boolean);
+  const h = normText(hyp).split(' ').filter(Boolean);
+  if (!r.length) return h.length ? 1 : 0;
+  const dp = Array.from({length:r.length+1},(_,i)=>
+    Array.from({length:h.length+1},(_,j)=> i===0?j:j===0?i:0));
+  for (let i=1;i<=r.length;i++)
+    for (let j=1;j<=h.length;j++)
+      dp[i][j] = r[i-1]===h[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return Math.min(dp[r.length][h.length]/r.length, 1);
+}
+
+// ═══════════════════════════════════════════════════════
+// NOTES
+// ═══════════════════════════════════════════════════════
+function onNoteInput(idx) {
+  const btn = document.getElementById('nbtn_'+idx);
+  if (btn) btn.disabled = false;
+  const st = document.getElementById('nstatus_'+idx);
+  if (st) { st.textContent=''; st.className='note-status'; }
+}
+
+async function saveNote(sessionId, clipId, idx) {
+  const ta  = document.getElementById('note_'+idx);
+  const btn = document.getElementById('nbtn_'+idx);
+  const st  = document.getElementById('nstatus_'+idx);
+  if (!ta||!btn) return;
+  const note   = ta.value.trim();
+  const fileId = sessionFileIndex[sessionId];
+  if (!fileId) { setNoteStatus(st,'⚠ Fichier Drive introuvable',true); return; }
+  btn.disabled = true;
+  setNoteStatus(st,'Enregistrement…',false);
+  try {
+    const s    = allSessions.find(x=>x.session_id===sessionId);
+    const clip = s?.clips?.find(c=>c.clip_id===clipId);
+    if (!clip) throw new Error('Clip introuvable');
+    if (note) clip.note = note; else delete clip.note;
+    await driveWriteJSON(fileId, s);
+    setNoteStatus(st,'✓ Enregistré',false);
+    setTimeout(()=>{ st.classList.remove('show'); },2000);
+  } catch(e) {
+    setNoteStatus(st,'⚠ '+e.message,true);
+    btn.disabled = false;
+  }
+}
+
+function setNoteStatus(el, msg, isErr) {
+  if (!el) return;
+  el.textContent = msg;
+  el.className   = 'note-status show' + (isErr?' err':'');
+}
+
+// ═══════════════════════════════════════════════════════
+// AUDIO PLAYER
+// ═══════════════════════════════════════════════════════
+let currentAudio=null, currentIdx=null, blobURLs={};
+
+function stopCurrentAudio() {
+  if (currentAudio) { currentAudio.pause(); currentAudio=null; }
+  if (currentIdx!==null) {
+    const btn=document.getElementById('btn_'+currentIdx);
+    if (btn) { btn.classList.remove('playing','loading');
+      btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>'; }
+    const p=document.getElementById('prog_'+currentIdx);
+    if (p) p.style.width='0%';
+    currentIdx=null;
+  }
+}
+
+async function togglePlay(idx,audioId,audioName) {
+  if (currentIdx===idx&&currentAudio&&!currentAudio.paused) { stopCurrentAudio(); return; }
+  stopCurrentAudio();
+  const btn=document.getElementById('btn_'+idx);
+  btn.classList.add('loading');
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/></svg>';
+  try {
+    if (!blobURLs[audioId]) { blobURLs[audioId]=URL.createObjectURL(await driveReadBlob(audioId)); }
+    const audio=new Audio(blobURLs[audioId]);
+    currentAudio=audio; currentIdx=idx;
+    audio.addEventListener('loadedmetadata',()=>updTime(idx,audio));
+    audio.addEventListener('timeupdate',()=>{
+      updTime(idx,audio);
+      const p=document.getElementById('prog_'+idx);
+      if(p) p.style.width=(audio.duration?(audio.currentTime/audio.duration*100):0)+'%';
+    });
+    audio.addEventListener('ended',stopCurrentAudio);
+    audio.addEventListener('error',()=>{ showAudioErr(idx,'Erreur lecture'); stopCurrentAudio(); });
+    await audio.play();
+    btn.classList.remove('loading'); btn.classList.add('playing');
+    btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+  } catch(e) {
+    showAudioErr(idx,e.message); btn.classList.remove('loading'); currentAudio=null; currentIdx=null;
+  }
+}
+
+function seekAudio(ev,idx) {
+  if (!currentAudio||currentIdx!==idx) return;
+  const bar=document.getElementById('bar_'+idx);
+  currentAudio.currentTime=(ev.offsetX/bar.offsetWidth)*currentAudio.duration;
+}
+
+function updTime(idx,audio) {
+  const el=document.getElementById('time_'+idx);
+  if (el) el.textContent=fmt(audio.currentTime)+' / '+fmt(audio.duration||0);
+}
+
+function fmt(s) {
+  if (!isFinite(s)) return '0:00';
+  return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+}
+
+function showAudioErr(idx,msg) {
+  const card=document.getElementById('card_'+idx); if (!card) return;
+  let e=card.querySelector('.audio-err');
+  if (!e) { e=document.createElement('div'); e.className='audio-err'; card.querySelector('.clip-audio').after(e); }
+  e.textContent=msg;
+}
+
+// ═══════════════════════════════════════════════════════
+// QUALITY FLAGS
+// ═══════════════════════════════════════════════════════
+function getQFlag(id) { return localStorage.getItem('vocalmed_q_'+id); }
+function setQFlag(id,idx,q) {
+  const cur=getQFlag(id); const nv=cur===q?null:q;
+  if (nv===null) localStorage.removeItem('vocalmed_q_'+id);
+  else localStorage.setItem('vocalmed_q_'+id,nv);
+  document.getElementById('card_'+idx)
+    .querySelectorAll('.qflag').forEach(b=>b.classList.toggle('active',b.dataset.q===nv));
+  const s=document.getElementById('qsaved_'+idx);
+  if (s) { s.classList.add('show'); clearTimeout(s._t); s._t=setTimeout(()=>s.classList.remove('show'),1800); }
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════
+function exportQFlags(sessionId) {
+  const s=allSessions.find(x=>x.session_id===sessionId); if (!s) return;
+  const out=(s.clips||[]).map(c=>({
+    clip_id: c.clip_id, sentence: c.sentence, audio: c.audio_clip_name,
+    note: c.note||null, stt_results: c.stt_results||{},
+    env_flags: {lieu:c.environment?.lieu||null,distance:c.environment?.distance||null,conditions:c.environment?.conditions||[]},
+    quality_flag: getQFlag(c.clip_id)||null,
+  }));
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=sessionId+'_quality.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════
+// DOWNLOAD CLIP AUDIO
+// ═══════════════════════════════════════════════════════
+async function downloadClip(idx,audioId,audioName) {
+  const btn=document.querySelector(`#card_${idx} .btn-dl-audio`);
+  if (btn) { btn.style.opacity='.5'; btn.style.pointerEvents='none'; }
+  try {
+    if (!blobURLs[audioId]) blobURLs[audioId]=URL.createObjectURL(await driveReadBlob(audioId));
+    const a=document.createElement('a'); a.href=blobURLs[audioId]; a.download=audioName; a.click();
+  } catch(e) { showAudioErr(idx,'Téléchargement échoué: '+e.message); }
+  finally { if (btn) { btn.style.opacity=''; btn.style.pointerEvents=''; } }
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function showDashboard() { stopCurrentAudio(); showView('viewDashboard'); }
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function countBy(arr,fn) { const m={}; arr.forEach(x=>{const k=fn(x);m[k]=(m[k]||0)+1;}); return m; }
+function countByMulti(arr,fn) { const m={}; arr.forEach(x=>{fn(x).forEach(k=>{m[k]=(m[k]||0)+1;})}); return m; }
+function renderBarBreakdown(id,counts) {
+  const e=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const mx=e[0]?.[1]||1;
+  const cls=['','green','yellow'];
+  document.getElementById(id).innerHTML=e.length
+    ? e.map(([l,n],i)=>`<div class="bar-row">
+        <div class="bar-label" title="${esc(l)}">${esc(l)}</div>
+        <div class="bar-track"><div class="bar-fill ${cls[i]||''}" style="width:${Math.round(n/mx*100)}%"></div></div>
+        <div class="bar-count">${n}</div></div>`).join('')
+    : '<div style="color:var(--text-dim);font-size:.75rem">—</div>';
 }
 function guessCategory(t) {
-  t = t.toLowerCase();
+  if (!t) return '?'; t=t.toLowerCase();
   if (/radio|scanner|irm|échographie|rx|thoracique/.test(t)) return 'Radiologie';
   if (/nfs|bilan|dosage|analyse|glycémie|lipase|ionogramme/.test(t)) return 'Analyse';
   return 'Prescription';
 }
+function setConn(s,l) { document.getElementById('connDot').className='conn-dot '+s; document.getElementById('connLabel').textContent=l; }
+function setRefreshLoading(on) { document.getElementById('btnRefresh').classList.toggle('loading',on); }
 
-// ═══════════════════════════════
-// BAR STATE
-// ═══════════════════════════════
-function setBar(state) {
-  S.state = state;
-  const bar    = document.getElementById('waBar');
-  const trash  = document.getElementById('waTrash');
-  const mid    = document.getElementById('waMiddle');
-  const dot    = document.getElementById('waDot');
-  const play   = document.getElementById('waPlay');
-  const pr     = document.getElementById('waPR');
-  const prIcon = document.getElementById('waPRIcon');
-  const main   = document.getElementById('waMain');
-  const mIcon  = document.getElementById('waMainIcon');
-  const hint   = document.getElementById('waHint');
-  const note   = null;
-
-  // Reset classes
-  bar.className   = 'wa-bar ' + (state === 'idle' ? 'idle' : 'active');
-  trash.className = 'wa-trash' + (state === 'paused' || state === 'stopped' ? ' show' : '');
-  mid.className   = 'wa-middle' + (state !== 'idle' ? ' show' : '');
-  play.className  = 'wa-play'  + (state === 'paused' || state === 'stopped' ? ' show' : '');
-  pr.className    = 'wa-pr'   + (state === 'recording' || state === 'paused' ? ' show' : '');
-
-  // Dot blink
-  dot.className = 'wa-dot' + (state === 'recording' ? ' blink' : '');
-
-  // Pause/resume icon
-  if (state === 'recording') {
-    prIcon.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
-  } else if (state === 'paused') {
-    prIcon.innerHTML = micPath();
-  }
-
-  // Main button
-  if (state === 'idle') {
-    main.className = 'wa-main mic';
-    mIcon.innerHTML = micPath();
-  } else if (state === 'recording') {
-    main.className = 'wa-main send';
-    mIcon.innerHTML = sendPath();
-  } else {
-    main.className = 'wa-main send';
-    mIcon.innerHTML = sendPath();
-  }
-
-  // Hint
-  hint.textContent = {
-    idle:      'Appuyez sur le micro pour commencer',
-    recording: 'En cours… ‖ pause · ➤ envoyer',
-    paused:    '',
-    stopped:   '',
-  }[state] || '';
-}
-
-function micPath() {
-  return `<rect x="9" y="2" width="6" height="12" rx="3"/>
-    <path d="M5 10a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="2" fill="none"/>
-    <line x1="12" y1="19" x2="12" y2="22" stroke="currentColor" stroke-width="2"/>
-    <line x1="9" y1="22" x2="15" y2="22" stroke="currentColor" stroke-width="2"/>`;
-}
-function sendPath() {
-  return `<path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>`;
-}
-
-// ═══════════════════════════════
-// MAIN BUTTON
-// ═══════════════════════════════
-function handleMain() {
-  if (S.state === 'idle')                        startRec();
-  else if (S.state === 'recording')              sendClip();
-  else if (S.state === 'paused')                 sendClip();
-  else if (S.state === 'stopped')                sendClip();
-}
-function togglePause() {
-  if (S.state === 'recording') pauseRec();
-  else if (S.state === 'paused') resumeRec();
-}
-
-// ═══════════════════════════════
-// RECORDING
-// ═══════════════════════════════
-function startRec() {
-  navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: false })
-    .then(stream => {
-      localStorage.setItem('vocalmed_mic_ok', '1');
-      S.micStream   = stream;
-      S.audioChunks = [];
-      const mime = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4','']
-        .find(t => !t || MediaRecorder.isTypeSupported(t));
-      try { S.recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {}); }
-      catch { S.recorder = new MediaRecorder(stream); }
-      S.recorder.ondataavailable = e => { if (e.data?.size > 0) S.audioChunks.push(e.data); };
-      S.recorder.start(100);
-      S.recStart = Date.now(); S.pausedMs = 0;
-      setBar('recording');
-      startWave(stream);
-      startTimer();
-    })
-    .catch(e => {
-      const msg = e.name === 'NotAllowedError'
-        ? 'Permission micro refusée — autorisez le microphone dans les réglages'
-        : e.name === 'NotFoundError' ? 'Aucun microphone détecté' : e.message;
-      showToast(msg, 'err');
-    });
-}
-
-function pauseRec() {
-  if (S.recorder?.state === 'recording') {
-    S.recorder.pause();
-    S.pausedMs += Date.now() - S.recStart;
-  }
-  clearInterval(S.timerInterval);
-  stopWave();
-  buildPauseBlob();
-  setBar('paused');
-}
-
-function resumeRec() {
-  stopPlay();
-  if (S.recorder?.state === 'paused') {
-    S.recorder.resume();
-    S.recStart = Date.now();
-  }
-  setBar('recording');
-  startTimer();
-  if (S.micStream) startWave(S.micStream);
-}
-
-function buildPauseBlob() {
-  if (!S.audioChunks.length) return;
-  const mime = S.recorder?.mimeType || 'audio/webm';
-  const ext  = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') ? 'mp4' : 'webm';
-  const blob = new Blob(S.audioChunks, { type: mime });
-  S.pendingBlob = blob; S.pendingExt = ext;
-  if (S.objectURL) URL.revokeObjectURL(S.objectURL);
-  S.objectURL = URL.createObjectURL(blob);
-  document.getElementById('audioPlayer').src = S.objectURL;
-}
-
-function stopAndGetBlob() {
-  return new Promise(res => {
-    if (!S.recorder || S.recorder.state === 'inactive') { buildPauseBlob(); res(S.pendingBlob); return; }
-    S.recorder.onstop = () => {
-      buildPauseBlob();
-      S.micStream?.getTracks().forEach(t => t.stop()); S.micStream = null;
-      clearInterval(S.timerInterval); stopWave();
-      res(S.pendingBlob);
-    };
-    S.recorder.stop();
-  });
-}
-
-// ═══════════════════════════════
-// SEND / DISCARD
-// ═══════════════════════════════
-async function sendClip() {
-  setBar('stopped');
-  const blob = await stopAndGetBlob();
-  if (!blob) { showToast('Aucun audio', 'err'); setBar('idle'); return; }
-
-  const s        = S.sessionSentences[S.currentIndex];
-  const clipId   = S.sessionId + '_' + String(S.currentIndex).padStart(3, '0');
-  const filename = clipId + '.' + S.pendingExt;
-  const note     = null;
-
-  const clip = {
-    clip_id:         clipId,
-    sentence:        s.sentence,
-    num_orders:      s.num_orders,
-    audio_clip_name: filename,
-    note:            note || null,
-    environment: {
-      lieu:       S.flags.lieu       || null,
-      distance:   S.flags.distance   || null,
-      conditions: [...S.flags.conditions],
-    },
-    device: {
-      os:      S.deviceProfile.os,
-      browser: S.deviceProfile.browser,
-      mobile:  S.deviceProfile.mobile,
-      cores:   S.deviceProfile.cores,
-      ram:     S.deviceProfile.ram,
-    },
-    timestamp: new Date().toISOString(),
-  };
-
-  S.clips.push(clip);
-  S.currentIndex++;
-  saveSession();
-
-  // Capture blob NOW before any cleanup clears it
-  const audioBlob = blob;
-
-  stopPlay();
-  if (S.objectURL) { URL.revokeObjectURL(S.objectURL); S.objectURL = null; }
-  document.getElementById('audioPlayer').src = '';
-  S.pendingBlob = null;
-
-  // Fire-and-forget uploads AFTER cleanup references are done
-  commitAudio(audioBlob, filename);
-  pushJSON();
-
-  renderSentence();
-  setBar('idle');
-}
-
-function discardClip() { document.getElementById('discardModal').classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function confirmDiscard() {
-  closeModal('discardModal');
-  stopPlay();
-  if (S.recorder) { try { S.recorder.stop(); } catch {} }
-  S.micStream?.getTracks().forEach(t => t.stop()); S.micStream = null;
-  S.audioChunks = []; S.pendingBlob = null;
-  clearInterval(S.timerInterval); stopWave();
-  if (S.objectURL) { URL.revokeObjectURL(S.objectURL); S.objectURL = null; }
-  document.getElementById('audioPlayer').src = '';
-  // swap sentence
-  const used   = new Set(S.sessionSentences.map(x => x.sentence));
-  const extras = S.sentences.filter(s => !used.has(s.sentence));
-  if (extras.length) S.sessionSentences[S.currentIndex] = extras[Math.floor(Math.random() * extras.length)];
-  renderSentence();
-  setBar('idle');
-  showToast('Enregistrement supprimé', 'info');
-}
-
-// ═══════════════════════════════
-// END SESSION
-// ═══════════════════════════════
-function askEnd() {
-  document.getElementById('endCount').textContent = S.clips.length;
-  document.getElementById('endModal').classList.add('open');
-}
-function endSession() {
-  clearSession();
-  if (S.recorder) { try { S.recorder.stop(); } catch {} }
-  S.micStream?.getTracks().forEach(t => t.stop()); S.micStream = null;
-  clearInterval(S.timerInterval); stopWave(); stopPlay();
-  setBar('idle');
-
-  // Fresh session
-  S.sessionId = 'session_' + S.userId.slice(2, 8) + '_' + Date.now().toString(36);
-  pickSentences();
-  S.currentIndex = 0; S.clips = [];
-  saveSession();
-  renderSentence();
-  showToast('Nouvelle session démarrée', 'info');
-}
-
-// ═══════════════════════════════
-// PLAYBACK
-// ═══════════════════════════════
-function togglePlay() {
-  const p = document.getElementById('audioPlayer');
-  if (!p.src || p.src === location.href) { showToast('Aucun audio', 'info'); return; }
-  if (S.isPlaying) stopPlay();
-  else {
-    p.play().catch(() => {});
-    S.isPlaying = true;
-    document.getElementById('waPlay').classList.add('playing');
-    document.getElementById('waPlayIcon').innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
-  }
-}
-function stopPlay() {
-  const p = document.getElementById('audioPlayer');
-  p.pause(); p.currentTime = 0;
-  S.isPlaying = false;
-  document.getElementById('waPlay').classList.remove('playing');
-  document.getElementById('waPlayIcon').innerHTML = '<polygon points="5,3 19,12 5,21"/>';
-}
-function onAudioEnded() { stopPlay(); }
-
-// ═══════════════════════════════
-// TIMER
-// ═══════════════════════════════
-function startTimer() {
-  clearInterval(S.timerInterval);
-  S.recStart = Date.now();
-  S.timerInterval = setInterval(() => {
-    const ms = S.pausedMs + (Date.now() - S.recStart);
-    const s  = Math.floor(ms / 1000) % 60, m = Math.floor(ms / 60000);
-    document.getElementById('waTimer').textContent = m + ':' + String(s).padStart(2, '0');
-  }, 200);
-}
-
-// ═══════════════════════════════
-// WAVEFORM
-// ═══════════════════════════════
-function buildWave() {
-  const w = document.getElementById('waWave');
-  for (let i = 0; i < 40; i++) {
-    const b = document.createElement('div'); b.className = 'wa-wave-bar off'; b.style.height = '2px'; w.appendChild(b);
-  }
-}
-function startWave(stream) {
-  stopWave();
-  try {
-    S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const an = S.audioCtx.createAnalyser(); an.fftSize = 64;
-    S.audioCtx.createMediaStreamSource(stream).connect(an);
-    const bars = document.querySelectorAll('.wa-wave-bar');
-    function draw() {
-      if (S.state !== 'recording') return;
-      const d = new Uint8Array(an.frequencyBinCount); an.getByteFrequencyData(d);
-      bars.forEach((b, i) => { b.className = 'wa-wave-bar'; b.style.height = Math.max(2, (d[i % d.length] || 0) / 255 * 26) + 'px'; });
-      S.wavAnim = requestAnimationFrame(draw);
-    }
-    draw();
-  } catch (e) { console.warn(e); }
-}
-function stopWave() {
-  cancelAnimationFrame(S.wavAnim);
-  document.querySelectorAll('.wa-wave-bar').forEach(b => { b.className = 'wa-wave-bar off'; b.style.height = '2px'; });
-  if (S.audioCtx) { S.audioCtx.close(); S.audioCtx = null; }
-}
-
-// ═══════════════════════════════
-// GITHUB
-// ═══════════════════════════════
-async function githubPut(path, base64, message) {
-  // Validate config first
-  if (!CONFIG.GITHUB_TOKEN || CONFIG.GITHUB_TOKEN === 'YOUR_GITHUB_TOKEN_HERE')
-    throw new Error('Token manquant dans CONFIG');
-  if (!CONFIG.GITHUB_REPO || CONFIG.GITHUB_REPO === 'your-username/your-repo')
-    throw new Error('Repo manquant dans CONFIG');
-
-  let sha = null;
-  try {
-    const r = await fetch('https://api.github.com/repos/' + CONFIG.GITHUB_REPO + '/contents/' + path,
-      { headers: { 'Authorization': 'token ' + CONFIG.GITHUB_TOKEN } });
-    if (r.ok) { const d = await r.json(); sha = d.sha || null; }
-  } catch {}
-  const body = { message, content: base64, branch: CONFIG.GITHUB_BRANCH };
-  if (sha) body.sha = sha;
-  const r = await fetch('https://api.github.com/repos/' + CONFIG.GITHUB_REPO + '/contents/' + path, {
-    method: 'PUT',
-    headers: { 'Authorization': 'token ' + CONFIG.GITHUB_TOKEN, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!r.ok) {
-    let detail = 'GitHub HTTP ' + r.status;
-    try { const d = await r.json(); detail += ' – ' + (d.message || JSON.stringify(d)); } catch {}
-    throw new Error(detail);
-  }
-}
-
-async function commitAudio(blob, filename) {
-  setUpload('uploading', '⬆ Audio…');
-  console.log('[commitAudio] start', filename, 'size:', blob?.size, 'type:', blob?.type);
-  try {
-    if (!blob || blob.size === 0) throw new Error('Blob vide (taille 0)');
-    const b64 = await blobToB64(blob);
-    console.log('[commitAudio] b64 length:', b64.length, 'path:', CONFIG.GITHUB_AUDIOS_PATH + filename);
-    await githubPut(CONFIG.GITHUB_AUDIOS_PATH + filename, b64, 'audio ' + filename);
-    setUpload('ok', '✓');
-    console.log('[commitAudio] success:', filename);
-  } catch (e) {
-    setUpload('error', '✗');
-    console.error('[commitAudio] FAILED:', e.message);
-    showToast('Audio non sauvegardé : ' + e.message, 'err');
-  }
-}
-
-async function pushJSON() {
-  const payload = {
-    session_id:     S.sessionId,
-    user_id:        S.userId,
-    device_profile: S.deviceProfile,
-    timestamp:      new Date().toISOString(),
-    clips:          S.clips,
-  };
-  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-  try {
-    await githubPut(CONFIG.GITHUB_RESULTS_PATH + S.sessionId + '.json', b64, 'update ' + S.sessionId);
-    saveLocally(payload);
-  } catch (e) { saveLocally(payload); console.error(e); }
-}
-
-function blobToB64(blob) {
-  return new Promise((res, rej) => {
-    const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob);
-  });
-}
-function setUpload(type, label) {
-  document.getElementById('uploadDot').className = 'upload-dot ' + type;
-  document.getElementById('uploadLabel').textContent = label;
-}
-
-// ═══════════════════════════════
-// LOCAL SESSIONS
-// ═══════════════════════════════
-function saveLocally(payload) {
-  const sessions = JSON.parse(ls('vocalmed_sessions') || '[]');
-  const idx = sessions.findIndex(s => s.session_id === payload.session_id);
-  if (idx >= 0) sessions[idx] = payload; else sessions.push(payload);
-  ls('vocalmed_sessions', JSON.stringify(sessions));
-  S.sessions = sessions;
-}
-function loadSessions() {
-  S.sessions = JSON.parse(ls('vocalmed_sessions') || '[]');
-}
-
-// ═══════════════════════════════
-// ANALYSIS VIEW
-// ═══════════════════════════════
-function showAnalysis() {
-  loadSessions();
-  document.getElementById('mainView').style.display    = 'none';
-  document.getElementById('analysisView').classList.add('show');
-  document.getElementById('waHint').style.display      = 'none';
-  document.getElementById('waBar').style.display       = 'none';
-  renderSessions();
-}
-function showRecording() {
-  document.getElementById('mainView').style.display    = 'block';
-  document.getElementById('analysisView').classList.remove('show');
-  document.getElementById('waHint').style.display      = 'block';
-  document.getElementById('waBar').style.display       = 'flex';
-}
-
-function renderSessions() {
-  const list  = document.getElementById('sessionList');
-  const empty = document.getElementById('analysisEmpty');
-  if (!S.sessions.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  list.innerHTML = S.sessions.map(s => `
-    <div class="session-row" onclick="openSession('${s.session_id}')">
-      <div class="session-row-id">${s.session_id}</div>
-      <div class="session-row-meta">
-        ${s.clips?.length || 0} clips · ${s.device_profile?.os || '?'} ·
-        ${new Date(s.timestamp).toLocaleDateString('fr-FR')}
-      </div>
-    </div>`).join('');
-}
-
-function openSession(id) {
-  const s = S.sessions.find(x => x.session_id === id); if (!s) return;
-  const list = document.getElementById('sessionList');
-  list.innerHTML = `
-    <button class="btn-back" onclick="renderSessions()" style="margin-bottom:12px">← Sessions</button>
-    <div style="font-family:var(--mono);font-size:.75rem;color:var(--accent);margin-bottom:4px">${id}</div>
-    <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:14px">
-      ${s.device_profile?.os || '?'} · ${s.device_profile?.cores || '?'} cœurs · ${s.clips?.length || 0} clips
-    </div>
-    <table class="clips-table">
-      <thead><tr><th>#</th><th>Clip ID</th><th>Phrase</th><th>Audio</th><th>Lieu</th><th>Distance</th></tr></thead>
-      <tbody>
-        ${(s.clips || []).map((c, i) => `
-          <tr>
-            <td style="color:var(--text-dim);font-family:var(--mono);font-size:.68rem">${i + 1}</td>
-            <td style="font-family:var(--mono);font-size:.68rem;color:var(--accent)">${c.clip_id}</td>
-            <td style="max-width:200px;font-size:.75rem">${c.sentence}</td>
-            <td style="font-family:var(--mono);font-size:.68rem;color:var(--text-muted)">${c.audio_clip_name}</td>
-            <td style="font-size:.72rem;color:var(--text-muted)">${c.environment?.lieu || '—'}</td>
-            <td style="font-size:.72rem;color:var(--text-muted)">${c.environment?.distance || '—'}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`;
-  document.getElementById('analysisEmpty').style.display = 'none';
-}
-
-function exportJSON() {
-  const blob = new Blob([JSON.stringify(S.sessions, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a'); a.href = url; a.download = 'vocalmed_' + Date.now() + '.json'; a.click();
-  URL.revokeObjectURL(url);
-}
-
-// ═══════════════════════════════
-// TOAST
-// ═══════════════════════════════
-function toggleTheme() {
-  const isLight = document.body.classList.toggle('light');
-  ls('vocalmed_theme', isLight ? 'light' : 'dark');
-  updateThemeIcon(isLight);
-}
-function updateThemeIcon(isLight) {
-  document.getElementById('themeIcon').innerHTML = isLight
-    ? `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" stroke="none"/>`
-    : `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-       <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-       <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-       <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
-}
-function initTheme() {
-  const saved = ls('vocalmed_theme');
-  if (saved === 'light') { document.body.classList.add('light'); updateThemeIcon(true); }
-}
-let _tt;
-function showToast(msg, type = 'info') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast show ' + type;
-  clearTimeout(_tt); _tt = setTimeout(() => t.className = 'toast', 3500);
-}
+window.addEventListener('DOMContentLoaded', loadAll);
 </script>
 </body>
 </html>
