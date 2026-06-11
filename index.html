@@ -111,9 +111,13 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .model-chip.err{background:rgba(220,38,38,.08);color:var(--red)}
 .model-chip.active{background:var(--accent-glow);color:var(--accent)}
 .model-prog-wrap{flex:1;min-width:120px;display:flex;flex-direction:column;gap:3px}
-.model-prog-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden}
-.model-prog-fill{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .15s}
-.model-prog-label{font-size:.6rem;font-family:var(--mono);color:var(--text-dim)}
+.model-prog-bar{height:7px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;overflow:hidden}
+.model-prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);border-radius:99px;width:0%;transition:width .25s ease;position:relative;overflow:hidden}
+.model-prog-fill::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 25%,rgba(255,255,255,.4) 50%,transparent 75%);
+  animation:shimmer 1.4s linear infinite;transform:translateX(-100%)}
+@keyframes shimmer{to{transform:translateX(300%)}}
+.model-prog-label{font-size:.62rem;font-family:var(--mono);color:var(--text-muted);margin-top:2px}
 .model-btns{display:flex;gap:5px;margin-left:auto;flex-shrink:0}
 .btn-sm{padding:3px 11px;border-radius:20px;font-size:.65rem;cursor:pointer;
   font-family:inherit;transition:all .15s;white-space:nowrap;border:1px solid}
@@ -521,9 +525,7 @@ async function loadPipeline(spec) {
   env.allowRemoteModels = true;
 
   // Weights are cached by Transformers.js in Cache API after first download
-  const pipe = await pipeline('automatic-speech-recognition', spec.hfId, {
-    language: 'french',
-  });
+  const pipe = await pipeline('automatic-speech-recognition', spec.hfId);
 
   _activePipeline = pipe;
   _activeModelId  = spec.id;
@@ -571,57 +573,108 @@ async function downloadModel(modelId) {
   const spec = MODEL_REGISTRY.find(m => m.id === modelId);
   if (!spec) return;
 
-  // Vosk requires a local server — not downloadable from plain HTML
+  // Vosk requires a local server — show inline info, no alert
   if (spec.requiresServer) {
-    alert(`Vosk nécessite un serveur local.\nConfigurez voskModelUrl dans CONFIG et lancez un serveur HTTP local avec les fichiers WASM de vosk-browser.\nURL configurée : ${spec.voskModelUrl}`);
+    const row = document.getElementById('mrow_' + modelId);
+    if (row) {
+      let info = row.querySelector('.vosk-info');
+      if (!info) {
+        info = document.createElement('div');
+        info.className = 'vosk-info';
+        info.style.cssText = 'width:100%;margin-top:6px;font-size:.68rem;color:var(--text-muted);' +
+          'background:var(--yellow-bg);border-radius:var(--radius-sm);padding:6px 10px;line-height:1.5';
+        row.appendChild(info);
+      }
+      info.innerHTML = `⚠ Vosk nécessite un serveur HTTP local avec les fichiers WASM de vosk-browser.<br>
+        Lancez : <code style="font-family:var(--mono);background:var(--surface2);padding:1px 5px;border-radius:4px">npx serve .</code>
+        dans le dossier contenant les fichiers vosk-browser, puis rechargez.<br>
+        URL configurée : <code style="font-family:var(--mono)">${spec.voskModelUrl}</code>`;
+    }
     return;
   }
 
   _activeDownloads.add(modelId);
   _stopDownloads = false;
 
-  const btn     = document.getElementById('mbtn_'    + modelId);
-  const progW   = document.getElementById('mrow_prog_' + modelId);
-  const fill    = document.getElementById('mfill_'   + modelId);
-  const plabel  = document.getElementById('mplabel_' + modelId);
-
-  if (btn)  btn.style.display = 'none';
-  if (progW) progW.style.display = 'flex';
-  document.getElementById('btnStopDl').style.display = '';
+  // Inject a live progress bar directly into the model row.
+  // We don't rely on pre-rendered IDs because renderModelList() can
+  // replace the DOM while a download is in progress.
+  const injectProgress = () => {
+    const row = document.getElementById('mrow_' + modelId);
+    if (!row) return;
+    const existingBtn = row.querySelector('.btn-sm.dl');
+    if (existingBtn) existingBtn.style.display = 'none';
+    if (!document.getElementById('livefill_' + modelId)) {
+      const pw = document.createElement('div');
+      pw.className = 'live-prog model-prog-wrap';
+      pw.innerHTML =
+        `<div class="model-prog-bar"><div class="model-prog-fill" id="livefill_${modelId}" style="width:0%"></div></div>` +
+        `<div class="model-prog-label" id="livelabel_${modelId}">Connexion…</div>`;
+      const btns = row.querySelector('.model-btns');
+      if (btns) row.insertBefore(pw, btns); else row.appendChild(pw);
+    }
+  };
 
   const setP = (pct, text) => {
-    if (fill)   fill.style.width  = pct + '%';
-    if (plabel) plabel.textContent = text || pct + '%';
+    // Always re-query — DOM may have been partially rebuilt
+    injectProgress();
+    const fill  = document.getElementById('livefill_'  + modelId);
+    const label = document.getElementById('livelabel_' + modelId);
+    if (fill)  fill.style.width  = Math.min(pct, 100) + '%';
+    if (label) label.textContent = text || pct + '%';
   };
+
+  injectProgress();
+  document.getElementById('btnStopDl').style.display = '';
 
   try {
     const { pipeline, env } = await getTransformers();
     env.allowRemoteModels = true;
 
-    setP(0, 'Connexion…');
+    // Aggregate progress across all files Transformers.js downloads
+    const fileProgress = {};  // file → { loaded, total }
 
     await pipeline('automatic-speech-recognition', spec.hfId, {
-      language: 'french',
       progress_callback: (p) => {
         if (_stopDownloads) throw new Error('Téléchargement arrêté');
-        if (p.status === 'downloading') {
-          const pct = p.total ? Math.round((p.loaded / p.total) * 100) : 0;
-          setP(pct, `${pct}% — ${(p.file || '').split('/').pop()}`);
+
+        if (p.status === 'initiate' || p.status === 'download') {
+          if (!fileProgress[p.file]) fileProgress[p.file] = { loaded: 0, total: 0 };
+          setP(0, `Initialisation — ${(p.file||'').split('/').pop()}`);
+
+        } else if (p.status === 'progress') {
+          fileProgress[p.file] = { loaded: p.loaded||0, total: p.total||0 };
+          let totLoaded = 0, totTotal = 0;
+          Object.values(fileProgress).forEach(f => { totLoaded += f.loaded; totTotal += f.total; });
+          const pct = totTotal > 0 ? Math.round(totLoaded / totTotal * 100) : 0;
+          const mbL = (totLoaded / 1048576).toFixed(0);
+          const mbT = (totTotal  / 1048576).toFixed(0);
+          const fname = (p.file||'').split('/').pop();
+          setP(pct, `${pct}% · ${mbL} / ${mbT} MB — ${fname}`);
+
+        } else if (p.status === 'done') {
+          if (fileProgress[p.file]) {
+            fileProgress[p.file].loaded = fileProgress[p.file].total;
+          }
+          let totLoaded = 0, totTotal = 0;
+          Object.values(fileProgress).forEach(f => { totLoaded += f.loaded; totTotal += f.total; });
+          const pct = totTotal > 0 ? Math.round(totLoaded / totTotal * 100) : 99;
+          setP(pct, `${pct}% — fichier terminé`);
+
         } else if (p.status === 'loading') {
-          setP(99, 'Chargement…');
+          setP(99, 'Chargement en mémoire…');
         }
       },
     });
 
-    // Record as downloaded in IDB
     await idbSet(modelId, { downloadedAt: Date.now() });
-    setP(100, 'Prêt');
+    setP(100, '✓ Prêt');
+    await new Promise(r => setTimeout(r, 900));
 
   } catch (e) {
-    if (plabel) plabel.textContent = '⚠ ' + e.message;
-    if (btn)  { btn.style.display = ''; }
+    setP(0, '⚠ ' + e.message);
     _activeDownloads.delete(modelId);
-    if (!_stopDownloads) await new Promise(r => setTimeout(r, 2000));
+    if (!_stopDownloads) await new Promise(r => setTimeout(r, 2500));
     await renderModelList();
     return;
   }
@@ -631,7 +684,7 @@ async function downloadModel(modelId) {
     document.getElementById('btnStopDl').style.display = 'none';
   }
   await renderModelList();
-  refreshSttRows(); // update "Lancer" buttons in open session
+  refreshSttRows();
 }
 
 async function downloadAllModels() {
@@ -700,7 +753,7 @@ async function renderModelList() {
     const btns = isDl
       ? `<button class="btn-sm del" onclick="deleteModel('${m.id}')">Supprimer</button>`
       : m.requiresServer
-        ? `<button class="btn-sm dl" onclick="downloadModel('${m.id}')">Info</button>`
+        ? `<button class="btn-sm del" style="border-color:var(--yellow);color:var(--yellow)" onclick="downloadModel('${m.id}')">ⓘ Configurer</button>`
         : `<button class="btn-sm dl" id="mbtn_${m.id}" onclick="downloadModel('${m.id}')" ${isDown?'disabled':''}>
              ${isDown ? '…' : 'Télécharger'}
            </button>`;
@@ -1158,7 +1211,18 @@ async function runWhisperSTT(spec, blob) {
   const rendered = await offCtx.startRendering();
   const f32      = rendered.getChannelData(0);
 
-  const result = await pipe(f32, { language: 'french', task: 'transcribe' });
+  // Force French language and transcription task.
+  // In Transformers.js v2, these go into the top-level call options.
+  // forced_decoder_ids ensures Whisper never tries to auto-detect the language.
+  const result = await pipe(f32, {
+    language: 'french',
+    task: 'transcribe',
+    forced_decoder_ids: null,   // let the library resolve from language+task
+    generate_kwargs: {
+      language: 'french',
+      task: 'transcribe',
+    },
+  });
   return result.text.trim();
 }
 
